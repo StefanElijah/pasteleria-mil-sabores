@@ -1,0 +1,52 @@
+import { IsString, IsInt, IsOptional, IsBoolean, IsArray, Min, MaxLength, IsUrl } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class CreateProductDto {
+    @IsString()
+    @MaxLength(100)
+    nombre!: string;
+
+    @IsString()
+    @MaxLength(100)
+    slug!: string;
+
+    @IsOptional()
+    @IsString()
+    descripcion?: string;
+
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    precio!: number;
+
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    precioComparacion?: number;
+
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    stock!: number;
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    imagenes?: string[];
+
+    @IsOptional()
+    @IsBoolean()
+    novedad?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    destacado?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    activo?: boolean;
+
+    @IsString()
+    categoriaId!: string;
+}

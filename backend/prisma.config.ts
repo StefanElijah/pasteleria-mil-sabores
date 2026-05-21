@@ -1,12 +1,13 @@
-import "dotenv/config";
-import { defineConfig } from "prisma/config";
+import 'dotenv/config';
+import { defineConfig } from 'prisma/config';
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
-  datasource: {
-    url: process.env.DATABASE_URL!,
-  },
+  schema: 'prisma/schema.prisma',
   migrations: {
-    seed: "ts-node prisma/seed.ts",
+    path: 'prisma/migrations',
+    seed: 'tsx prisma/seed.ts',
+  },
+  datasource: {
+    url: `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}?schema=public`,
   },
 });
