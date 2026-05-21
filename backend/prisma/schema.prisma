@@ -1,0 +1,342 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// ENUMERACIONES (ENUMS)
+// ==========================================
+
+enum RolUsuario {
+  ADMIN
+  MODERADOR
+  CLIENTE
+}
+
+enum EstadoUsuario {
+  ACTIVO
+  INACTIVO
+  SUSPENDIDO
+}
+
+enum TipoDescuento {
+  PORCENTAJE
+  MONTO_FIJO
+  ENVIO_GRATIS
+}
+
+enum ObjetivoDescuento {
+  TODO
+  PRODUCTOS_ESPECIFICOS
+  CATEGORIAS_ESPECIFICAS
+}
+
+enum TipoVivienda {
+  CASA
+  DEPARTAMENTO
+  OFICINA
+  LOCAL_COMERCIAL
+  OTRO
+}
+
+enum EstadoPedido {
+  PENDIENTE
+  PREPARANDO
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
+
+enum MetodoPago {
+  TARJETA
+  TRANSFERENCIA
+  EFECTIVO
+  PAGO_ENTREGA
+}
+
+// ==========================================
+// MODELOS DE USUARIOS Y PERFILES
+// ==========================================
+
+model Usuario {
+  id       String        @id @default(cuid())
+  email    String        @unique
+  password String
+  telefono String?
+  avatar   String?
+  rol      RolUsuario    @default(CLIENTE)
+  estado   EstadoUsuario @default(ACTIVO)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  perfilStaff   PerfilStaff?
+  perfilCliente PerfilCliente?
+  pedidos       Pedido[]
+  envios        Envio[]
+  direcciones   Direccion[]
+
+  @@index([email])
+  @@index([rol])
+  @@index([estado])
+  @@map("usuarios")
+}
+
+model PerfilStaff {
+  usuarioId String  @id
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  primerNombre    String
+  segundoNombre   String?
+  primerApellido  String
+  segundoApellido String?
+  direccion       String?
+
+  @@map("perfiles_staff")
+}
+
+model PerfilCliente {
+  usuarioId String  @id
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  nombre String
+
+  @@map("perfiles_clientes")
+}
+
+// ==========================================
+// MODELOS DE PRODUCTOS Y CATALOGO
+// ==========================================
+
+model Categoria {
+  id     String  @id @default(cuid())
+  nombre String
+  slug   String  @unique
+  icono  String?
+  activo Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  productos  Producto[]
+  descuentos Descuento[]
+
+  @@index([slug])
+  @@index([activo])
+  @@map("categorias")
+}
+
+model Producto {
+  id                String   @id @default(cuid())
+  nombre            String
+  slug              String   @unique
+  descripcion       String?
+  precio            Int
+  precioComparacion Int?
+  stock             Int      @default(0)
+  imagenes          String[]
+  novedad           Boolean  @default(false)
+  destacado         Boolean  @default(false)
+  activo            Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  categoriaId String
+  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
+  itemsPedido ItemPedido[]
+  descuentos  Descuento[]
+
+  @@index([categoriaId])
+  @@index([slug])
+  @@index([activo])
+  @@index([destacado])
+  @@index([novedad])
+  @@index([precio])
+  @@map("productos")
+}
+
+model Descuento {
+  id                String            @id @default(cuid())
+  nombre            String
+  codigo            String?           @unique
+  tipo              TipoDescuento
+  valor             Int
+  objetivo          ObjetivoDescuento @default(TODO)
+  fechaInicio       DateTime          @default(now())
+  fechaFin          DateTime?
+  activo            Boolean           @default(true)
+  valorMinimoPedido Int?
+  limiteUso         Int?
+  contadorUso       Int               @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  productos  Producto[]
+  categorias Categoria[]
+  pedidos    Pedido[]
+
+  @@index([codigo])
+  @@index([activo])
+  @@index([fechaInicio, fechaFin])
+  @@map("descuentos")
+}
+
+// ==========================================
+// MODELOS DE UBICACION Y DIRECCIONES
+// ==========================================
+
+model Region {
+  id     String @id @default(cuid())
+  nombre String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  comunas     Comuna[]
+  direcciones Direccion[]
+
+  @@index([nombre])
+  @@map("regiones")
+}
+
+model Comuna {
+  id     String @id @default(cuid())
+  nombre String
+
+  regionId String
+  region   Region @relation(fields: [regionId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  direcciones Direccion[]
+
+  @@index([regionId])
+  @@index([nombre])
+  @@map("comunas")
+}
+
+model Direccion {
+  id           String       @id @default(cuid())
+  calle        String
+  numero       String
+  ciudad       String?
+  codigoPostal String?
+  email        String?
+  telefono     String?
+  isDefault    Boolean      @default(false)
+  tipoVivienda TipoVivienda @default(CASA)
+  notas        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  comunaId String
+  comuna   Comuna @relation(fields: [comunaId], references: [id])
+
+  regionId String
+  region   Region @relation(fields: [regionId], references: [id])
+
+  usuarioId String?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+
+  pedidos Pedido[]
+
+  @@index([comunaId])
+  @@index([regionId])
+  @@index([usuarioId])
+  @@index([isDefault])
+  @@map("direcciones")
+}
+
+// ==========================================
+// MODELOS DE COMPRAS Y LOGÍSTICA
+// ==========================================
+
+model Pedido {
+  id              String       @id @default(cuid())
+  numeroPedido    String       @unique
+  stripeSessionId String?      @unique
+  estado          EstadoPedido @default(PENDIENTE)
+  subtotal        Int
+  total           Int
+  metodoPago      MetodoPago
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  direccionId String
+  direccion   Direccion @relation(fields: [direccionId], references: [id])
+
+  descuentoId String?
+  descuento   Descuento? @relation(fields: [descuentoId], references: [id])
+
+  items ItemPedido[]
+  envio Envio?
+
+  @@index([usuarioId])
+  @@index([numeroPedido])
+  @@index([estado])
+  @@index([createdAt])
+  @@index([descuentoId])
+  @@map("pedidos")
+}
+
+model ItemPedido {
+  id       String @id @default(cuid())
+  nombre   String
+  precio   Int
+  cantidad Int
+  total    Int
+
+  // Relaciones
+  pedidoId String
+  pedido   Pedido @relation(fields: [pedidoId], references: [id])
+
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  @@index([pedidoId])
+  @@index([productoId])
+  @@map("items_pedido")
+}
+
+model Envio {
+  id                   String    @id @default(cuid())
+  numeroTracking       String?
+  metodoEnvio          String
+  empresaLogistica     String?
+  fechaEstimadaEntrega DateTime
+  fechaEntregada       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  pedidoId String @unique
+  pedido   Pedido @relation(fields: [pedidoId], references: [id])
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([pedidoId])
+  @@index([usuarioId])
+  @@index([numeroTracking])
+  @@index([fechaEstimadaEntrega])
+  @@map("envios")
+}
