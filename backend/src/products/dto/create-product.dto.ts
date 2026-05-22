@@ -1,12 +1,14 @@
-import { IsString, IsInt, IsOptional, IsBoolean, IsArray, Min, MaxLength, IsUrl } from 'class-validator';
+import { IsString, IsInt, IsOptional, IsBoolean, IsArray, Min, MaxLength, IsUrl, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateProductDto {
     @IsString()
+    @IsNotEmpty()
     @MaxLength(100)
     nombre!: string;
 
     @IsString()
+    @IsNotEmpty()
     @MaxLength(100)
     slug!: string;
 
@@ -37,16 +39,20 @@ export class CreateProductDto {
 
     @IsOptional()
     @IsBoolean()
+    @Type(() => Boolean)
     novedad?: boolean;
 
     @IsOptional()
     @IsBoolean()
+    @Type(() => Boolean)
     destacado?: boolean;
 
     @IsOptional()
     @IsBoolean()
+    @Type(() => Boolean)
     activo?: boolean;
 
     @IsString()
+    @IsNotEmpty()
     categoriaId!: string;
 }

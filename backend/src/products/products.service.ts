@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, BadRequestException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
@@ -9,8 +9,16 @@ export class ProductsService {
     async create(createProductDto: CreateProductDto) {
         const { categoriaId, ...data } = createProductDto;
         // Verificar que la categoría existe
-        const category = await this.prisma.categoria.findUnique({ where: { id: categoriaId } });
-        if (!category) throw new NotFoundException('Categoría no encontrada');
+        const category = await this.prisma.categoria.findUnique({
+            where: { id: categoriaId },
+        });
+        if (!category) throw new BadRequestException('Categoría no encontrada');
+
+        // Verificar slug único
+        const existing = await this.prisma.producto.findUnique({
+            where: { slug: data.slug },
+        });
+        if (existing) throw new BadRequestException('El slug ya existe');
 
         return this.prisma.producto.create({
             data: {
@@ -50,13 +58,25 @@ export class ProductsService {
     async update(id: string, updateProductDto: UpdateProductDto) {
         // Verificar que existe
         await this.findOne(id);
-        const { categoriaId, ...data } = updateProductDto;
-        const updateData: any = { ...data };
+        const { categoriaId, slug, ...data } = updateProductDto;
+
+        // Si se envía slug, verificar que no esté en uso por otro producto
+        if (slug) {
+            const existing = await this.prisma.producto.findFirst({
+                where: { slug, id: { not: id } },
+            });
+            if (existing) throw new BadRequestException('El slug ya está en uso');
+        }
+
+        const updateData: any = { ...data, slug };
         if (categoriaId) {
-            const category = await this.prisma.categoria.findUnique({ where: { id: categoriaId } });
-            if (!category) throw new NotFoundException('Categoría no encontrada');
+            const category = await this.prisma.categoria.findUnique({
+                where: { id: categoriaId },
+            });
+            if (!category) throw new BadRequestException('Categoría no encontrada');
             updateData.categoria = { connect: { id: categoriaId } };
         }
+
         return this.prisma.producto.update({
             where: { id },
             data: updateData,
