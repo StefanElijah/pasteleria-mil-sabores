@@ -1,10 +1,14 @@
 import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
-import { CreateOrderDto, TemporaryAddressDto } from './dto/create-order.dto';
-import { EstadoPedido, MetodoPago, TipoVivienda } from '@prisma/client';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { EstadoPedido } from '@prisma/client';
+import { CartService } from '../cart/cart.service'; // Ajusta la ruta según tu proyecto
 
 @Injectable()
 export class OrdersService {
-    constructor(@Inject('PrismaClient') private prisma: any) { }
+    constructor(
+        @Inject('PrismaClient') private prisma: any,
+        private cartService: CartService,
+    ) { }
 
     private async calcularEnvio(comunaId: string, metodoEnvio: string): Promise<{ costo: number; fechaEstimada: Date }> {
         const comuna = await this.prisma.comuna.findUnique({
@@ -30,10 +34,25 @@ export class OrdersService {
         return { costo, fechaEstimada };
     }
 
-    async create(userId: string | null, createOrderDto: CreateOrderDto) {
-        const { items, direccionId, direccion, metodoPago, metodoEnvio, costoEnvio, descuentoId, notas } = createOrderDto;
+    async create(
+        userId: string | null,
+        createOrderDto: CreateOrderDto,
+        cartId?: string, // nuevo parámetro: ID del carrito (para invitados o autenticados)
+    ) {
+        let { items, direccionId, direccion, metodoPago, metodoEnvio, costoEnvio, descuentoId, notas } = createOrderDto;
 
-        // 1. Obtener o crear la dirección (obligatoriamente no null después de este bloque)
+        // 1. Si no se enviaron items, obtenerlos del carrito
+        if (!items || items.length === 0) {
+            if (!cartId) throw new BadRequestException('No se proporcionó carrito y no hay items en la orden');
+            const cart = await this.cartService.getCart(cartId);
+            if (!cart.items.length) throw new BadRequestException('El carrito está vacío');
+            items = cart.items.map((item: any) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+            }));
+        }
+
+        // 2. Obtener o crear la dirección (obligatoriamente no null después de este bloque)
         let direccionFinal: any = null;
 
         if (direccionId) {
@@ -65,8 +84,7 @@ export class OrdersService {
             throw new BadRequestException('Debe proporcionar direccionId o direccion temporal');
         }
 
-        // A partir de aquí direccionFinal siempre tiene valor (no null)
-        // 2. Calcular costo de envío si no viene del front
+        // 3. Calcular costo de envío si no viene del front
         let envioCosto = costoEnvio;
         let fechaEstimadaEntrega: Date;
         if (!envioCosto) {
@@ -78,9 +96,9 @@ export class OrdersService {
             fechaEstimadaEntrega.setDate(fechaEstimadaEntrega.getDate() + 3);
         }
 
-        // 3. Validar productos y calcular subtotal
+        // 4. Validar productos y calcular subtotal
         let subtotal = 0;
-        const orderItemsData: any[] = []; // tipamos como any para evitar conflictos con Prisma
+        const orderItemsData: any[] = [];
         for (const item of items) {
             const product = await this.prisma.producto.findUnique({
                 where: { id: item.productId, activo: true },
@@ -101,7 +119,7 @@ export class OrdersService {
             });
         }
 
-        // 4. Aplicar descuento
+        // 5. Aplicar descuento
         let discountAmount = 0;
         if (descuentoId) {
             const descuento = await this.prisma.descuento.findUnique({
@@ -123,7 +141,7 @@ export class OrdersService {
         const total = subtotal + envioCosto - discountAmount;
         const orderNumber = `PAST-${Date.now()}`;
 
-        // 5. Crear pedido y envío en transacción
+        // 6. Crear pedido y envío en transacción
         const result = await this.prisma.$transaction(async (tx: any) => {
             const newOrder = await tx.pedido.create({
                 data: {
@@ -161,6 +179,11 @@ export class OrdersService {
                     where: { id: item.productId },
                     data: { stock: { decrement: item.quantity } },
                 });
+            }
+
+            // Vaciar el carrito después de crear el pedido
+            if (cartId) {
+                await this.cartService.clearCart(cartId);
             }
 
             return { ...newOrder, envio };

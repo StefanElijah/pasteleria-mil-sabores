@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { OptionalJwtAuthGuard } from '../../auth/guards/optional-jwt.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '@modules/auth/guards/optional-jwt.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { Roles } from '@modules/auth/decorators/roles.decorator';
 
 @Controller('orders')
 export class OrdersController {
@@ -14,7 +14,9 @@ export class OrdersController {
     @UseGuards(OptionalJwtAuthGuard)
     async create(@Req() req: any, @Body() createOrderDto: CreateOrderDto) {
         const userId = req.user?.userId || null;
-        return this.ordersService.create(userId, createOrderDto);
+        let cartId = req.headers['x-cart-id'] || req.cookies?.cartId;
+        if (userId) cartId = `user:${userId}`;
+        return this.ordersService.create(userId, createOrderDto, cartId);
     }
 
     @Get()

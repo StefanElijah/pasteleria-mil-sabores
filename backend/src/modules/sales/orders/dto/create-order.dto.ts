@@ -6,7 +6,8 @@ import { Type } from 'class-transformer';
 import { MetodoPago, TipoVivienda } from '@prisma/client';
 
 export class OrderItemDto {
-    @IsUUID()
+    @IsString()
+    @IsNotEmpty()
     productId!: string;
 
     @IsInt()
@@ -47,10 +48,12 @@ export class TemporaryAddressDto {
     @IsString()
     notas?: string;
 
-    @IsUUID()
+    @IsString()
+    @IsNotEmpty()
     comunaId!: string;
 
-    @IsUUID()
+    @IsString()
+    @IsNotEmpty()
     regionId!: string;
 }
 
@@ -61,7 +64,8 @@ export class CreateOrderDto {
     items!: OrderItemDto[];
 
     @ValidateIf(o => !o.direccion && o.direccionId)
-    @IsUUID()
+    @IsString()
+    @IsNotEmpty()
     direccionId?: string;
 
     @ValidateIf(o => !o.direccionId && o.direccion)
