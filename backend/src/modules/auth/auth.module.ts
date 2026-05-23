@@ -6,7 +6,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { CartModule } from '../cart/cart.module';
+import { CartModule } from '@modules/sales/cart/cart.module';
 
 @Module({
     imports: [

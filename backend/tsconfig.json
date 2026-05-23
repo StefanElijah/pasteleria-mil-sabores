@@ -16,6 +16,15 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@common/*": [
+        "./src/common/*"
+      ],
+      "@core/*": [
+        "./src/core/*"
+      ],
+      "@modules/*": [
+        "./src/modules/*"
       ]
     },
     "incremental": true,

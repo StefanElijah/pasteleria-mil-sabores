@@ -270,6 +270,7 @@ model Pedido {
   stripeSessionId String?      @unique
   estado          EstadoPedido @default(PENDIENTE)
   subtotal        Int
+  costoEnvio      Int          @default(0)
   total           Int
   metodoPago      MetodoPago
 

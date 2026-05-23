@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from '@modules/auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { ProductsModule } from './products/products.module';
-import { CategoriesModule } from './categories/categories.module';
+import { ProductsModule } from '@modules/catalog/products/products.module';
+import { CategoriesModule } from '@modules/catalog/categories/categories.module';
 import { RedisModule } from './redis/redis.module';
-import { CartModule } from './cart/cart.module';
+import { CartModule } from '@modules/sales/cart/cart.module';
+import { OrdersModule } from '@modules/sales/orders/orders.module';
+import { AddressesModule } from '@modules/sales/addresses/addresses.module';
+import { ShippingModule } from '@modules/sales/shipping/shipping.module';
 
 @Module({
   imports: [
@@ -16,6 +19,9 @@ import { CartModule } from './cart/cart.module';
     ProductsModule,
     CategoriesModule,
     CartModule,
+    OrdersModule,
+    AddressesModule,
+    ShippingModule
   ],
 })
 export class AppModule { }
