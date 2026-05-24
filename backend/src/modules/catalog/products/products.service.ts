@@ -8,23 +8,12 @@ export class ProductsService {
 
     async create(createProductDto: CreateProductDto) {
         const { categoriaId, ...data } = createProductDto;
-        // Verificar que la categoría existe
-        const category = await this.prisma.categoria.findUnique({
-            where: { id: categoriaId },
-        });
+        const category = await this.prisma.categoria.findUnique({ where: { id: categoriaId } });
         if (!category) throw new BadRequestException('Categoría no encontrada');
-
-        // Verificar slug único
-        const existing = await this.prisma.producto.findUnique({
-            where: { slug: data.slug },
-        });
+        const existing = await this.prisma.producto.findUnique({ where: { slug: data.slug } });
         if (existing) throw new BadRequestException('El slug ya existe');
-
         return this.prisma.producto.create({
-            data: {
-                ...data,
-                categoria: { connect: { id: categoriaId } },
-            },
+            data: { ...data, categoria: { connect: { id: categoriaId } } },
             include: { categoria: true },
         });
     }
@@ -37,9 +26,12 @@ export class ProductsService {
         });
     }
 
-    async findOne(id: string) {
+    // Permite opcionalmente incluir inactivos (para uso interno del admin)
+    async findOne(id: string, includeInactive = false) {
+        const where: any = { id };
+        if (!includeInactive) where.activo = true;
         const product = await this.prisma.producto.findUnique({
-            where: { id },
+            where,
             include: { categoria: true },
         });
         if (!product) throw new NotFoundException('Producto no encontrado');
@@ -48,7 +40,7 @@ export class ProductsService {
 
     async findBySlug(slug: string) {
         const product = await this.prisma.producto.findUnique({
-            where: { slug },
+            where: { slug, activo: true },
             include: { categoria: true },
         });
         if (!product) throw new NotFoundException('Producto no encontrado');
@@ -56,27 +48,21 @@ export class ProductsService {
     }
 
     async update(id: string, updateProductDto: UpdateProductDto) {
-        // Verificar que existe
-        await this.findOne(id);
+        // Permitir actualizar incluso si está inactivo (para reactivarlo)
+        await this.findOne(id, true);
         const { categoriaId, slug, ...data } = updateProductDto;
-
-        // Si se envía slug, verificar que no esté en uso por otro producto
         if (slug) {
             const existing = await this.prisma.producto.findFirst({
                 where: { slug, id: { not: id } },
             });
             if (existing) throw new BadRequestException('El slug ya está en uso');
         }
-
         const updateData: any = { ...data, slug };
         if (categoriaId) {
-            const category = await this.prisma.categoria.findUnique({
-                where: { id: categoriaId },
-            });
+            const category = await this.prisma.categoria.findUnique({ where: { id: categoriaId } });
             if (!category) throw new BadRequestException('Categoría no encontrada');
             updateData.categoria = { connect: { id: categoriaId } };
         }
-
         return this.prisma.producto.update({
             where: { id },
             data: updateData,
@@ -85,7 +71,12 @@ export class ProductsService {
     }
 
     async remove(id: string) {
-        await this.findOne(id);
-        return this.prisma.producto.delete({ where: { id } });
+        // Soft delete: marcar como inactivo
+        const product = await this.prisma.producto.findUnique({ where: { id } });
+        if (!product) throw new NotFoundException('Producto no encontrado');
+        return this.prisma.producto.update({
+            where: { id },
+            data: { activo: false },
+        });
     }
 }
