@@ -21,10 +21,6 @@ export class CreateAddressDto {
 
     @IsOptional()
     @IsString()
-    email?: string;
-
-    @IsOptional()
-    @IsString()
     telefono?: string;
 
     @IsOptional()
@@ -36,15 +32,7 @@ export class CreateAddressDto {
     @IsEnum(TipoVivienda)
     tipoVivienda?: TipoVivienda;
 
-    @IsOptional()
-    @IsString()
-    notas?: string;
-
     @IsString()
     @IsNotEmpty()
     comunaId!: string;
-
-    @IsString()
-    @IsNotEmpty()
-    regionId!: string;
 }

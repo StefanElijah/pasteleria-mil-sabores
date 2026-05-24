@@ -34,10 +34,6 @@ export class TemporaryAddressDto {
 
     @IsOptional()
     @IsString()
-    email?: string;
-
-    @IsOptional()
-    @IsString()
     telefono?: string;
 
     @IsOptional()
@@ -51,10 +47,6 @@ export class TemporaryAddressDto {
     @IsString()
     @IsNotEmpty()
     comunaId!: string;
-
-    @IsString()
-    @IsNotEmpty()
-    regionId!: string;
 }
 
 export class CreateOrderDto {
@@ -77,6 +69,7 @@ export class CreateOrderDto {
     metodoPago!: MetodoPago;
 
     @IsString()
+    @IsNotEmpty()
     metodoEnvio!: string;
 
     @IsOptional()
@@ -92,17 +85,29 @@ export class CreateOrderDto {
     @IsString()
     notas?: string;
 
-    // Campos para invitado (obligatorios si no hay usuario autenticado)
-    @ValidateIf(o => !o.direccionId && !o.direccion)
+    // Campos obligatorios del destinatario (siempre los envía el frontend)
     @IsString()
     @IsNotEmpty()
-    nombreDestinatario?: string;
+    primerNombreDestinatario!: string;
 
-    @ValidateIf(o => !o.direccionId && !o.direccion)
-    @IsEmail()
-    emailDestinatario?: string;
-
-    @ValidateIf(o => !o.direccionId && !o.direccion)
     @IsString()
-    telefonoDestinatario?: string;
+    @IsNotEmpty()
+    primerApellidoDestinatario!: string;
+
+    @IsEmail()
+    @IsNotEmpty()
+    emailDestinatario!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    telefonoDestinatario!: string;
+
+    // Campos opcionales para pasarela de pago
+    @IsOptional()
+    @IsString()
+    transaccionId?: string;
+
+    @IsOptional()
+    @IsString()
+    comprobantePago?: string;
 }

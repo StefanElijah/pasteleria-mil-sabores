@@ -58,7 +58,7 @@ enum MetodoPago {
 }
 
 // ==========================================
-// MODELOS DE USUARIOS Y PERFILES
+// MODELOS DE USUARIOS Y PERFILES (Estrictos)
 // ==========================================
 
 model Usuario {
@@ -70,12 +70,11 @@ model Usuario {
   rol      RolUsuario    @default(CLIENTE)
   estado   EstadoUsuario @default(ACTIVO)
 
-  // Campos comunes a todos los usuarios (clientes y staff)
+  // Datos personales validados
   primerNombre    String
   segundoNombre   String?
   primerApellido  String
   segundoApellido String?
-  direccion       String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -84,7 +83,6 @@ model Usuario {
   perfilStaff   PerfilStaff?
   perfilCliente PerfilCliente?
   pedidos       Pedido[]
-  envios        Envio[]
   direcciones   Direccion[]
 
   @@index([email])
@@ -96,17 +94,15 @@ model Usuario {
 model PerfilStaff {
   usuarioId String  @id
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-
-  rut   String @unique
-  cargo String?
+  rut       String  @unique
+  cargo     String?
 
   @@map("perfiles_staff")
 }
 
 model PerfilCliente {
-  usuarioId String  @id
-  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-
+  usuarioId       String    @id
+  usuario         Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   fechaNacimiento DateTime?
   puntos          Int       @default(0)
 
@@ -118,16 +114,14 @@ model PerfilCliente {
 // ==========================================
 
 model Categoria {
-  id     String  @id @default(cuid())
-  nombre String
-  slug   String  @unique
-  icono  String?
-  activo Boolean @default(true)
-
+  id        String   @id @default(cuid())
+  nombre    String
+  slug      String   @unique
+  icono     String?
+  activo    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relaciones
   productos  Producto[]
   descuentos Descuento[]
 
@@ -148,11 +142,9 @@ model Producto {
   novedad           Boolean  @default(false)
   destacado         Boolean  @default(false)
   activo            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones
   categoriaId String
   categoria   Categoria    @relation(fields: [categoriaId], references: [id])
   itemsPedido ItemPedido[]
@@ -180,11 +172,9 @@ model Descuento {
   valorMinimoPedido Int?
   limiteUso         Int?
   contadorUso       Int               @default(0)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones
   productos  Producto[]
   categorias Categoria[]
   pedidos    Pedido[]
@@ -200,27 +190,22 @@ model Descuento {
 // ==========================================
 
 model Region {
-  id     String @id @default(cuid())
-  nombre String
-
+  id        String   @id @default(cuid())
+  nombre    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relaciones
-  comunas     Comuna[]
-  direcciones Direccion[]
+  comunas Comuna[]
 
   @@index([nombre])
   @@map("regiones")
 }
 
 model Comuna {
-  id     String @id @default(cuid())
-  nombre String
-
-  regionId String
-  region   Region @relation(fields: [regionId], references: [id])
-
+  id        String   @id @default(cuid())
+  nombre    String
+  regionId  String
+  region    Region   @relation(fields: [regionId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -237,36 +222,29 @@ model Direccion {
   numero       String
   ciudad       String?
   codigoPostal String?
-  email        String?
-  telefono     String?
   isDefault    Boolean      @default(false)
   tipoVivienda TipoVivienda @default(CASA)
-  notas        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones
   comunaId String
   comuna   Comuna @relation(fields: [comunaId], references: [id])
 
-  regionId String
-  region   Region @relation(fields: [regionId], references: [id])
-
+  // OPCIONAL: Si es null, fue una dirección de 1 solo uso (invitado o "no guardar")
+  // Si tiene ID, es una dirección guardada en la libreta del cliente
   usuarioId String?
   usuario   Usuario? @relation(fields: [usuarioId], references: [id])
 
   pedidos Pedido[]
 
   @@index([comunaId])
-  @@index([regionId])
   @@index([usuarioId])
   @@index([isDefault])
   @@map("direcciones")
 }
 
 // ==========================================
-// MODELOS DE COMPRAS Y LOGÍSTICA
+// MODELOS DE COMPRAS Y LOGÍSTICA (Flexibles)
 // ==========================================
 
 model Pedido {
@@ -281,20 +259,28 @@ model Pedido {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  // Campos para invitados (se usan si usuarioId es null)
-  nombreDestinatario   String?
-  emailDestinatario    String?
-  telefonoDestinatario String?
+  // Campos agregados para Pasarelas de Pago externas
+  transaccionId   String? @unique
+  comprobantePago String?
+
+  // Datos del destinatario (Snapshot histórico)
+  primerNombreDestinatario   String
+  primerApellidoDestinatario String
+  emailDestinatario          String
+  telefonoDestinatario       String
 
   // Relaciones
-  usuarioId   String?
-  usuario     Usuario?     @relation(fields: [usuarioId], references: [id])
+  usuarioId String? // OPCIONAL: Si es null, fue compra de invitado. Si tiene ID, se asocia al historial del cliente.
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+
   direccionId String
-  direccion   Direccion    @relation(fields: [direccionId], references: [id])
+  direccion   Direccion @relation(fields: [direccionId], references: [id])
+
   descuentoId String?
-  descuento   Descuento?   @relation(fields: [descuentoId], references: [id])
-  items       ItemPedido[]
-  envio       Envio?
+  descuento   Descuento? @relation(fields: [descuentoId], references: [id])
+
+  items ItemPedido[]
+  envio Envio?
 
   @@index([usuarioId])
   @@index([numeroPedido])
@@ -311,10 +297,8 @@ model ItemPedido {
   cantidad Int
   total    Int
 
-  // Relaciones
-  pedidoId String
-  pedido   Pedido @relation(fields: [pedidoId], references: [id])
-
+  pedidoId   String
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id])
   productoId String
   producto   Producto @relation(fields: [productoId], references: [id])
 
@@ -330,19 +314,13 @@ model Envio {
   empresaLogistica     String?
   fechaEstimadaEntrega DateTime
   fechaEntregada       DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones
   pedidoId String @unique
   pedido   Pedido @relation(fields: [pedidoId], references: [id])
 
-  usuarioId String?
-  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
-
   @@index([pedidoId])
-  @@index([usuarioId])
   @@index([numeroTracking])
   @@index([fechaEstimadaEntrega])
   @@map("envios")

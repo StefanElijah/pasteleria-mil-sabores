@@ -37,22 +37,26 @@ export class AuthService {
     }
 
     async register(registerDto: RegisterDto) {
-        const { email, password, nombre, telefono } = registerDto;
+        const { email, password, primerNombre, primerApellido, segundoNombre, segundoApellido } = registerDto;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = await this.prisma.usuario.create({
             data: {
                 email,
                 password: hashedPassword,
-                telefono,
                 rol: 'CLIENTE',
                 estado: 'ACTIVO',
+                primerNombre,
+                primerApellido,
+                segundoNombre: segundoNombre || null,
+                segundoApellido: segundoApellido || null,
                 perfilCliente: {
-                    create: { nombre },
+                    create: {},
                 },
             },
             include: { perfilCliente: true },
         });
+
         const { password: _, ...userWithoutPassword } = newUser;
         return userWithoutPassword;
     }

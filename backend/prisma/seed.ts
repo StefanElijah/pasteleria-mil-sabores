@@ -18,7 +18,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
     console.log('🌱 Iniciando seed de base de datos...');
 
-    // 1. Regiones y comunas (igual)
+    // 1. Regiones
     const regionMetropolitana = await prisma.region.upsert({
         where: { id: '1' },
         update: {},
@@ -30,6 +30,7 @@ async function main() {
         create: { id: '2', nombre: 'Valparaíso' },
     });
 
+    // 2. Comunas
     await prisma.comuna.upsert({
         where: { id: '1' },
         update: {},
@@ -46,7 +47,7 @@ async function main() {
         create: { id: '3', nombre: 'Viña del Mar', regionId: regionValparaiso.id },
     });
 
-    // 2. Categorías
+    // 3. Categorías
     const tortas = await prisma.categoria.upsert({
         where: { slug: 'tortas' },
         update: {},
@@ -63,7 +64,7 @@ async function main() {
         create: { nombre: 'Galletas', slug: 'galletas', icono: '🍪', activo: true },
     });
 
-    // 3. Usuario admin (guardar en variable)
+    // 4. Usuario administrador
     const adminPassword = await bcrypt.hash('admin123', 10);
     const admin = await prisma.usuario.upsert({
         where: { email: 'admin@pasteleria.com' },
@@ -79,13 +80,13 @@ async function main() {
             perfilStaff: {
                 create: {
                     rut: '12345678-9',
-                    cargo: 'Gerente'
+                    cargo: 'Gerente',
                 },
             },
         },
     });
 
-    // 4. Usuario cliente de ejemplo
+    // 5. Usuario cliente de ejemplo
     await prisma.usuario.upsert({
         where: { email: 'cliente@test.com' },
         update: {},
@@ -97,15 +98,12 @@ async function main() {
             primerNombre: 'Cliente',
             primerApellido: 'Test',
             perfilCliente: {
-                create: {
-                    // puntos tiene default 0, no es necesario enviarlo
-                    // fechaNacimiento es opcional
-                },
+                create: {},
             },
         },
     });
 
-    // 5. Productos (igual)
+    // 6. Productos
     await prisma.producto.upsert({
         where: { slug: 'torta-chocolate' },
         update: {},

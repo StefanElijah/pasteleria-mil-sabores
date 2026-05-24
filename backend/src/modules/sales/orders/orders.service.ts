@@ -39,7 +39,7 @@ export class OrdersService {
         createOrderDto: CreateOrderDto,
         cartId?: string,
     ) {
-        let {
+        const {
             items,
             direccionId,
             direccion,
@@ -48,21 +48,15 @@ export class OrdersService {
             costoEnvio,
             descuentoId,
             notas,
-            nombreDestinatario,
+            primerNombreDestinatario,
+            primerApellidoDestinatario,
             emailDestinatario,
-            telefonoDestinatario
+            telefonoDestinatario,
+            transaccionId,
+            comprobantePago,
         } = createOrderDto;
 
-        // 1. Si es invitado, validar datos del destinatario
-        if (!userId) {
-            if (!nombreDestinatario || !emailDestinatario || !telefonoDestinatario) {
-                throw new BadRequestException(
-                    'Para pedidos sin usuario (invitado), debe proporcionar nombre, email y teléfono del destinatario'
-                );
-            }
-        }
-
-        // 2. Determinar los items del pedido (desde el DTO o desde el carrito)
+        // 1. Determinar los items del pedido (desde el DTO o desde el carrito)
         let finalItems: Array<{ productId: string; quantity: number }> = [];
 
         if (items && items.length > 0) {
@@ -78,39 +72,36 @@ export class OrdersService {
             throw new BadRequestException('No se proporcionaron items ni carrito');
         }
 
-        // 3. Obtener o crear la dirección
+        // 2. Obtener o crear la dirección (sin regionId)
         let direccionFinal: any = null;
 
         if (direccionId) {
             direccionFinal = await this.prisma.direccion.findUnique({
                 where: { id: direccionId },
-                include: { comuna: true, region: true },
+                include: { comuna: true },
             });
             if (!direccionFinal) throw new NotFoundException('Dirección no encontrada');
             if (userId && direccionFinal.usuarioId !== userId) {
                 throw new BadRequestException('La dirección no pertenece al usuario');
             }
         } else if (direccion) {
-            const { comunaId, regionId, ...dirData } = direccion;
+            const { comunaId, ...dirData } = direccion;
             const comuna = await this.prisma.comuna.findUnique({ where: { id: comunaId } });
             if (!comuna) throw new NotFoundException('Comuna no encontrada');
-            const region = await this.prisma.region.findUnique({ where: { id: regionId } });
-            if (!region) throw new NotFoundException('Región no encontrada');
 
             direccionFinal = await this.prisma.direccion.create({
                 data: {
                     ...dirData,
                     comunaId,
-                    regionId,
                     usuarioId: userId || null,
                 },
-                include: { comuna: true, region: true },
+                include: { comuna: true },
             });
         } else {
             throw new BadRequestException('Debe proporcionar direccionId o direccion temporal');
         }
 
-        // 4. Calcular costo de envío si no viene del front
+        // 3. Calcular costo de envío si no viene del front
         let envioCosto = costoEnvio;
         let fechaEstimadaEntrega: Date;
         if (!envioCosto) {
@@ -122,7 +113,7 @@ export class OrdersService {
             fechaEstimadaEntrega.setDate(fechaEstimadaEntrega.getDate() + 3);
         }
 
-        // 5. Validar productos y calcular subtotal
+        // 4. Validar productos y calcular subtotal
         let subtotal = 0;
         const orderItemsData: any[] = [];
         for (const item of finalItems) {
@@ -145,7 +136,7 @@ export class OrdersService {
             });
         }
 
-        // 6. Aplicar descuento
+        // 5. Aplicar descuento
         let discountAmount = 0;
         if (descuentoId) {
             const descuento = await this.prisma.descuento.findUnique({
@@ -167,7 +158,7 @@ export class OrdersService {
         const total = subtotal + envioCosto - discountAmount;
         const orderNumber = `ORD-${Date.now()}`;
 
-        // 7. Crear pedido y envío en transacción
+        // 6. Crear pedido y envío en transacción
         const result = await this.prisma.$transaction(async (tx: any) => {
             const newOrder = await tx.pedido.create({
                 data: {
@@ -181,9 +172,12 @@ export class OrdersService {
                     usuarioId: userId,
                     direccionId: direccionFinal.id,
                     descuentoId: discountAmount > 0 ? descuentoId : null,
-                    nombreDestinatario: userId ? null : nombreDestinatario,
-                    emailDestinatario: userId ? null : emailDestinatario,
-                    telefonoDestinatario: userId ? null : telefonoDestinatario,
+                    primerNombreDestinatario,
+                    primerApellidoDestinatario,
+                    emailDestinatario,
+                    telefonoDestinatario,
+                    transaccionId,
+                    comprobantePago,
                     items: { create: orderItemsData },
                 },
                 include: { items: true, direccion: true },
@@ -195,11 +189,10 @@ export class OrdersService {
                     empresaLogistica: metodoEnvio,
                     fechaEstimadaEntrega,
                     pedidoId: newOrder.id,
-                    usuarioId: userId,
                 },
             });
 
-            // Reducir stock
+            // Reducir stock (operación atómica)
             for (const item of finalItems) {
                 await tx.producto.update({
                     where: { id: item.productId },
@@ -221,7 +214,11 @@ export class OrdersService {
     async findAllByUser(userId: string) {
         return this.prisma.pedido.findMany({
             where: { usuarioId: userId },
-            include: { items: true, direccion: true, envio: true },
+            include: {
+                items: { include: { producto: true } },
+                direccion: { include: { comuna: { include: { region: true } } } },
+                envio: true,
+            },
             orderBy: { createdAt: 'desc' },
         });
     }
@@ -231,7 +228,21 @@ export class OrdersService {
             where: { id },
             include: {
                 items: { include: { producto: true } },
-                direccion: { include: { comuna: true, region: true } },
+                direccion: { include: { comuna: { include: { region: true } } } },
+                envio: true,
+            },
+        });
+        if (!order) throw new NotFoundException('Pedido no encontrado');
+        if (userId && order.usuarioId !== userId) throw new BadRequestException('No tienes permiso');
+        return order;
+    }
+
+    async findByNumero(numeroPedido: string, userId?: string) {
+        const order = await this.prisma.pedido.findUnique({
+            where: { numeroPedido },
+            include: {
+                items: { include: { producto: true } },
+                direccion: { include: { comuna: { include: { region: true } } } },
                 envio: true,
             },
         });

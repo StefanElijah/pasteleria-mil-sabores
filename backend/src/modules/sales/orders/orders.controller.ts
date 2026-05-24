@@ -37,4 +37,12 @@ export class OrdersController {
     async updateStatus(@Param('id') id: string, @Body('estado') estado: string) {
         return this.ordersService.updateStatus(id, estado as any);
     }
+
+    @Get('numero/:numeroPedido')
+    @UseGuards(OptionalJwtAuthGuard)
+    async findByNumero(@Param('numeroPedido') numeroPedido: string, @Req() req: any) {
+        const userId = req.user?.userId;
+        return this.ordersService.findByNumero(numeroPedido, userId);
+    }
+
 }
