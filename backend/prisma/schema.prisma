@@ -70,6 +70,13 @@ model Usuario {
   rol      RolUsuario    @default(CLIENTE)
   estado   EstadoUsuario @default(ACTIVO)
 
+  // Campos comunes a todos los usuarios (clientes y staff)
+  primerNombre    String
+  segundoNombre   String?
+  primerApellido  String
+  segundoApellido String?
+  direccion       String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -90,11 +97,8 @@ model PerfilStaff {
   usuarioId String  @id
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  primerNombre    String
-  segundoNombre   String?
-  primerApellido  String
-  segundoApellido String?
-  direccion       String?
+  rut   String @unique
+  cargo String?
 
   @@map("perfiles_staff")
 }
@@ -103,7 +107,8 @@ model PerfilCliente {
   usuarioId String  @id
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  nombre String
+  fechaNacimiento DateTime?
+  puntos          Int       @default(0)
 
   @@map("perfiles_clientes")
 }
@@ -265,30 +270,31 @@ model Direccion {
 // ==========================================
 
 model Pedido {
-  id              String       @id @default(cuid())
-  numeroPedido    String       @unique
-  stripeSessionId String?      @unique
-  estado          EstadoPedido @default(PENDIENTE)
-  subtotal        Int
-  costoEnvio      Int          @default(0)
-  total           Int
-  metodoPago      MetodoPago
+  id           String       @id @default(cuid())
+  numeroPedido String       @unique
+  estado       EstadoPedido @default(PENDIENTE)
+  subtotal     Int
+  costoEnvio   Int          @default(0)
+  total        Int
+  metodoPago   MetodoPago
+  notas        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Campos para invitados (se usan si usuarioId es null)
+  nombreDestinatario   String?
+  emailDestinatario    String?
+  telefonoDestinatario String?
 
   // Relaciones
-  usuarioId String
-  usuario   Usuario @relation(fields: [usuarioId], references: [id])
-
+  usuarioId   String?
+  usuario     Usuario?     @relation(fields: [usuarioId], references: [id])
   direccionId String
-  direccion   Direccion @relation(fields: [direccionId], references: [id])
-
+  direccion   Direccion    @relation(fields: [direccionId], references: [id])
   descuentoId String?
-  descuento   Descuento? @relation(fields: [descuentoId], references: [id])
-
-  items ItemPedido[]
-  envio Envio?
+  descuento   Descuento?   @relation(fields: [descuentoId], references: [id])
+  items       ItemPedido[]
+  envio       Envio?
 
   @@index([usuarioId])
   @@index([numeroPedido])
@@ -332,8 +338,8 @@ model Envio {
   pedidoId String @unique
   pedido   Pedido @relation(fields: [pedidoId], references: [id])
 
-  usuarioId String
-  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId String?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
 
   @@index([pedidoId])
   @@index([usuarioId])

@@ -18,7 +18,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
     console.log('🌱 Iniciando seed de base de datos...');
 
-    // 1. Crear regiones y comunas (ejemplo mínimo)
+    // 1. Regiones y comunas (igual)
     const regionMetropolitana = await prisma.region.upsert({
         where: { id: '1' },
         update: {},
@@ -33,64 +33,37 @@ async function main() {
     await prisma.comuna.upsert({
         where: { id: '1' },
         update: {},
-        create: {
-            id: '1',
-            nombre: 'Santiago',
-            regionId: regionMetropolitana.id,
-        },
+        create: { id: '1', nombre: 'Santiago', regionId: regionMetropolitana.id },
     });
     await prisma.comuna.upsert({
         where: { id: '2' },
         update: {},
-        create: {
-            id: '2',
-            nombre: 'Providencia',
-            regionId: regionMetropolitana.id,
-        },
+        create: { id: '2', nombre: 'Providencia', regionId: regionMetropolitana.id },
     });
     await prisma.comuna.upsert({
         where: { id: '3' },
         update: {},
-        create: {
-            id: '3',
-            nombre: 'Viña del Mar',
-            regionId: regionValparaiso.id,
-        },
+        create: { id: '3', nombre: 'Viña del Mar', regionId: regionValparaiso.id },
     });
 
-    // 2. Crear categorías de productos
+    // 2. Categorías
     const tortas = await prisma.categoria.upsert({
         where: { slug: 'tortas' },
         update: {},
-        create: {
-            nombre: 'Tortas',
-            slug: 'tortas',
-            icono: '🎂',
-            activo: true,
-        },
+        create: { nombre: 'Tortas', slug: 'tortas', icono: '🎂', activo: true },
     });
     const pasteles = await prisma.categoria.upsert({
         where: { slug: 'pasteles' },
         update: {},
-        create: {
-            nombre: 'Pasteles',
-            slug: 'pasteles',
-            icono: '🍰',
-            activo: true,
-        },
+        create: { nombre: 'Pasteles', slug: 'pasteles', icono: '🍰', activo: true },
     });
     const galletas = await prisma.categoria.upsert({
         where: { slug: 'galletas' },
         update: {},
-        create: {
-            nombre: 'Galletas',
-            slug: 'galletas',
-            icono: '🍪',
-            activo: true,
-        },
+        create: { nombre: 'Galletas', slug: 'galletas', icono: '🍪', activo: true },
     });
 
-    // 3. Crear usuario administrador (con contraseña hasheada)
+    // 3. Usuario admin (guardar en variable)
     const adminPassword = await bcrypt.hash('admin123', 10);
     const admin = await prisma.usuario.upsert({
         where: { email: 'admin@pasteleria.com' },
@@ -101,17 +74,39 @@ async function main() {
             telefono: '+56912345678',
             rol: 'ADMIN',
             estado: 'ACTIVO',
+            primerNombre: 'Admin',
+            primerApellido: 'Principal',
             perfilStaff: {
                 create: {
-                    primerNombre: 'Admin',
-                    primerApellido: 'Principal',
+                    rut: '12345678-9',
+                    cargo: 'Gerente'
                 },
             },
         },
     });
 
-    // 4. Crear productos de ejemplo
-    const productoTortaChocolate = await prisma.producto.upsert({
+    // 4. Usuario cliente de ejemplo
+    await prisma.usuario.upsert({
+        where: { email: 'cliente@test.com' },
+        update: {},
+        create: {
+            email: 'cliente@test.com',
+            password: await bcrypt.hash('123456', 10),
+            rol: 'CLIENTE',
+            estado: 'ACTIVO',
+            primerNombre: 'Cliente',
+            primerApellido: 'Test',
+            perfilCliente: {
+                create: {
+                    // puntos tiene default 0, no es necesario enviarlo
+                    // fechaNacimiento es opcional
+                },
+            },
+        },
+    });
+
+    // 5. Productos (igual)
+    await prisma.producto.upsert({
         where: { slug: 'torta-chocolate' },
         update: {},
         create: {
@@ -128,7 +123,7 @@ async function main() {
         },
     });
 
-    const productoTortaTresLeches = await prisma.producto.upsert({
+    await prisma.producto.upsert({
         where: { slug: 'torta-tres-leches' },
         update: {},
         create: {
@@ -145,7 +140,7 @@ async function main() {
         },
     });
 
-    const productoGalletaVainilla = await prisma.producto.upsert({
+    await prisma.producto.upsert({
         where: { slug: 'galleta-vainilla' },
         update: {},
         create: {

@@ -1,6 +1,6 @@
 import {
     IsString, IsNotEmpty, IsArray, ValidateNested, IsOptional,
-    IsEnum, Min, IsUUID, ValidateIf, IsInt, IsNumber
+    IsEnum, Min, IsUUID, ValidateIf, IsInt, IsEmail
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { MetodoPago, TipoVivienda } from '@prisma/client';
@@ -58,14 +58,14 @@ export class TemporaryAddressDto {
 }
 
 export class CreateOrderDto {
+    @IsOptional()
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => OrderItemDto)
-    items!: OrderItemDto[];
+    items?: OrderItemDto[];
 
     @ValidateIf(o => !o.direccion && o.direccionId)
     @IsString()
-    @IsNotEmpty()
     direccionId?: string;
 
     @ValidateIf(o => !o.direccionId && o.direccion)
@@ -77,7 +77,6 @@ export class CreateOrderDto {
     metodoPago!: MetodoPago;
 
     @IsString()
-    @IsNotEmpty()
     metodoEnvio!: string;
 
     @IsOptional()
@@ -92,4 +91,18 @@ export class CreateOrderDto {
     @IsOptional()
     @IsString()
     notas?: string;
+
+    // Campos para invitado (obligatorios si no hay usuario autenticado)
+    @ValidateIf(o => !o.direccionId && !o.direccion)
+    @IsString()
+    @IsNotEmpty()
+    nombreDestinatario?: string;
+
+    @ValidateIf(o => !o.direccionId && !o.direccion)
+    @IsEmail()
+    emailDestinatario?: string;
+
+    @ValidateIf(o => !o.direccionId && !o.direccion)
+    @IsString()
+    telefonoDestinatario?: string;
 }

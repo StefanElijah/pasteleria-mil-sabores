@@ -28,6 +28,11 @@ CREATE TABLE "usuarios" (
     "avatar" TEXT,
     "rol" "RolUsuario" NOT NULL DEFAULT 'CLIENTE',
     "estado" "EstadoUsuario" NOT NULL DEFAULT 'ACTIVO',
+    "primerNombre" TEXT NOT NULL,
+    "segundoNombre" TEXT,
+    "primerApellido" TEXT NOT NULL,
+    "segundoApellido" TEXT,
+    "direccion" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -37,11 +42,8 @@ CREATE TABLE "usuarios" (
 -- CreateTable
 CREATE TABLE "perfiles_staff" (
     "usuarioId" TEXT NOT NULL,
-    "primerNombre" TEXT NOT NULL,
-    "segundoNombre" TEXT,
-    "primerApellido" TEXT NOT NULL,
-    "segundoApellido" TEXT,
-    "direccion" TEXT,
+    "rut" TEXT NOT NULL,
+    "cargo" TEXT,
 
     CONSTRAINT "perfiles_staff_pkey" PRIMARY KEY ("usuarioId")
 );
@@ -49,7 +51,8 @@ CREATE TABLE "perfiles_staff" (
 -- CreateTable
 CREATE TABLE "perfiles_clientes" (
     "usuarioId" TEXT NOT NULL,
-    "nombre" TEXT NOT NULL,
+    "fechaNacimiento" TIMESTAMP(3),
+    "puntos" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "perfiles_clientes_pkey" PRIMARY KEY ("usuarioId")
 );
@@ -153,15 +156,18 @@ CREATE TABLE "direcciones" (
 CREATE TABLE "pedidos" (
     "id" TEXT NOT NULL,
     "numeroPedido" TEXT NOT NULL,
-    "stripeSessionId" TEXT,
     "estado" "EstadoPedido" NOT NULL DEFAULT 'PENDIENTE',
     "subtotal" INTEGER NOT NULL,
     "costoEnvio" INTEGER NOT NULL DEFAULT 0,
     "total" INTEGER NOT NULL,
     "metodoPago" "MetodoPago" NOT NULL,
+    "notas" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "usuarioId" TEXT NOT NULL,
+    "nombreDestinatario" TEXT,
+    "emailDestinatario" TEXT,
+    "telefonoDestinatario" TEXT,
+    "usuarioId" TEXT,
     "direccionId" TEXT NOT NULL,
     "descuentoId" TEXT,
 
@@ -224,6 +230,9 @@ CREATE INDEX "usuarios_rol_idx" ON "usuarios"("rol");
 
 -- CreateIndex
 CREATE INDEX "usuarios_estado_idx" ON "usuarios"("estado");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "perfiles_staff_rut_key" ON "perfiles_staff"("rut");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "categorias_slug_key" ON "categorias"("slug");
@@ -292,9 +301,6 @@ CREATE INDEX "direcciones_isDefault_idx" ON "direcciones"("isDefault");
 CREATE UNIQUE INDEX "pedidos_numeroPedido_key" ON "pedidos"("numeroPedido");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "pedidos_stripeSessionId_key" ON "pedidos"("stripeSessionId");
-
--- CreateIndex
 CREATE INDEX "pedidos_usuarioId_idx" ON "pedidos"("usuarioId");
 
 -- CreateIndex
@@ -358,7 +364,7 @@ ALTER TABLE "direcciones" ADD CONSTRAINT "direcciones_regionId_fkey" FOREIGN KEY
 ALTER TABLE "direcciones" ADD CONSTRAINT "direcciones_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "usuarios"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "pedidos" ADD CONSTRAINT "pedidos_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "usuarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "pedidos" ADD CONSTRAINT "pedidos_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "usuarios"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "pedidos" ADD CONSTRAINT "pedidos_direccionId_fkey" FOREIGN KEY ("direccionId") REFERENCES "direcciones"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

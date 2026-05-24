@@ -1,7 +1,7 @@
 import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { EstadoPedido } from '@prisma/client';
-import { CartService } from '../cart/cart.service'; // Ajusta la ruta según tu proyecto
+import { CartService } from '@modules/sales/cart/cart.service';
 
 @Injectable()
 export class OrdersService {
@@ -37,22 +37,48 @@ export class OrdersService {
     async create(
         userId: string | null,
         createOrderDto: CreateOrderDto,
-        cartId?: string, // nuevo parámetro: ID del carrito (para invitados o autenticados)
+        cartId?: string,
     ) {
-        let { items, direccionId, direccion, metodoPago, metodoEnvio, costoEnvio, descuentoId, notas } = createOrderDto;
+        let {
+            items,
+            direccionId,
+            direccion,
+            metodoPago,
+            metodoEnvio,
+            costoEnvio,
+            descuentoId,
+            notas,
+            nombreDestinatario,
+            emailDestinatario,
+            telefonoDestinatario
+        } = createOrderDto;
 
-        // 1. Si no se enviaron items, obtenerlos del carrito
-        if (!items || items.length === 0) {
-            if (!cartId) throw new BadRequestException('No se proporcionó carrito y no hay items en la orden');
+        // 1. Si es invitado, validar datos del destinatario
+        if (!userId) {
+            if (!nombreDestinatario || !emailDestinatario || !telefonoDestinatario) {
+                throw new BadRequestException(
+                    'Para pedidos sin usuario (invitado), debe proporcionar nombre, email y teléfono del destinatario'
+                );
+            }
+        }
+
+        // 2. Determinar los items del pedido (desde el DTO o desde el carrito)
+        let finalItems: Array<{ productId: string; quantity: number }> = [];
+
+        if (items && items.length > 0) {
+            finalItems = items;
+        } else if (cartId) {
             const cart = await this.cartService.getCart(cartId);
             if (!cart.items.length) throw new BadRequestException('El carrito está vacío');
-            items = cart.items.map((item: any) => ({
+            finalItems = cart.items.map((item: any) => ({
                 productId: item.productId,
                 quantity: item.quantity,
             }));
+        } else {
+            throw new BadRequestException('No se proporcionaron items ni carrito');
         }
 
-        // 2. Obtener o crear la dirección (obligatoriamente no null después de este bloque)
+        // 3. Obtener o crear la dirección
         let direccionFinal: any = null;
 
         if (direccionId) {
@@ -84,7 +110,7 @@ export class OrdersService {
             throw new BadRequestException('Debe proporcionar direccionId o direccion temporal');
         }
 
-        // 3. Calcular costo de envío si no viene del front
+        // 4. Calcular costo de envío si no viene del front
         let envioCosto = costoEnvio;
         let fechaEstimadaEntrega: Date;
         if (!envioCosto) {
@@ -96,10 +122,10 @@ export class OrdersService {
             fechaEstimadaEntrega.setDate(fechaEstimadaEntrega.getDate() + 3);
         }
 
-        // 4. Validar productos y calcular subtotal
+        // 5. Validar productos y calcular subtotal
         let subtotal = 0;
         const orderItemsData: any[] = [];
-        for (const item of items) {
+        for (const item of finalItems) {
             const product = await this.prisma.producto.findUnique({
                 where: { id: item.productId, activo: true },
             });
@@ -111,7 +137,7 @@ export class OrdersService {
             const totalItem = unitPrice * item.quantity;
             subtotal += totalItem;
             orderItemsData.push({
-                productId: product.id,
+                productoId: product.id,
                 nombre: product.nombre,
                 precio: unitPrice,
                 cantidad: item.quantity,
@@ -119,7 +145,7 @@ export class OrdersService {
             });
         }
 
-        // 5. Aplicar descuento
+        // 6. Aplicar descuento
         let discountAmount = 0;
         if (descuentoId) {
             const descuento = await this.prisma.descuento.findUnique({
@@ -139,9 +165,9 @@ export class OrdersService {
         }
 
         const total = subtotal + envioCosto - discountAmount;
-        const orderNumber = `PAST-${Date.now()}`;
+        const orderNumber = `ORD-${Date.now()}`;
 
-        // 6. Crear pedido y envío en transacción
+        // 7. Crear pedido y envío en transacción
         const result = await this.prisma.$transaction(async (tx: any) => {
             const newOrder = await tx.pedido.create({
                 data: {
@@ -155,9 +181,10 @@ export class OrdersService {
                     usuarioId: userId,
                     direccionId: direccionFinal.id,
                     descuentoId: discountAmount > 0 ? descuentoId : null,
-                    items: {
-                        create: orderItemsData,
-                    },
+                    nombreDestinatario: userId ? null : nombreDestinatario,
+                    emailDestinatario: userId ? null : emailDestinatario,
+                    telefonoDestinatario: userId ? null : telefonoDestinatario,
+                    items: { create: orderItemsData },
                 },
                 include: { items: true, direccion: true },
             });
@@ -167,21 +194,20 @@ export class OrdersService {
                     metodoEnvio,
                     empresaLogistica: metodoEnvio,
                     fechaEstimadaEntrega,
-                    estado: EstadoPedido.PENDIENTE,
                     pedidoId: newOrder.id,
                     usuarioId: userId,
                 },
             });
 
             // Reducir stock
-            for (const item of items) {
+            for (const item of finalItems) {
                 await tx.producto.update({
                     where: { id: item.productId },
                     data: { stock: { decrement: item.quantity } },
                 });
             }
 
-            // Vaciar el carrito después de crear el pedido
+            // Vaciar carrito
             if (cartId) {
                 await this.cartService.clearCart(cartId);
             }
