@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsOptional, IsBoolean, IsArray, Min, MaxLength, IsUrl, IsNotEmpty } from 'class-validator';
+import { IsString, IsInt, IsOptional, IsBoolean, IsArray, Min, MaxLength, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateProductDto {
@@ -25,7 +25,7 @@ export class CreateProductDto {
     @IsInt()
     @Min(0)
     @Type(() => Number)
-    precioComparacion?: number;
+    precioComparacion?: number | null;
 
     @IsInt()
     @Min(0)

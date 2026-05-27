@@ -13,7 +13,11 @@ export class ProductsService {
         const existing = await this.prisma.producto.findUnique({ where: { slug: data.slug } });
         if (existing) throw new BadRequestException('El slug ya existe');
         return this.prisma.producto.create({
-            data: { ...data, categoria: { connect: { id: categoriaId } } },
+            data: {
+                ...data,
+                imagenes: data.imagenes || [],
+                categoria: { connect: { id: categoriaId } },
+            },
             include: { categoria: true },
         });
     }
@@ -26,7 +30,6 @@ export class ProductsService {
         });
     }
 
-    // Permite opcionalmente incluir inactivos (para uso interno del admin)
     async findOne(id: string, includeInactive = false) {
         const where: any = { id };
         if (!includeInactive) where.activo = true;
@@ -48,21 +51,29 @@ export class ProductsService {
     }
 
     async update(id: string, updateProductDto: UpdateProductDto) {
-        // Permitir actualizar incluso si está inactivo (para reactivarlo)
         await this.findOne(id, true);
         const { categoriaId, slug, ...data } = updateProductDto;
+
         if (slug) {
             const existing = await this.prisma.producto.findFirst({
                 where: { slug, id: { not: id } },
             });
             if (existing) throw new BadRequestException('El slug ya está en uso');
         }
+
         const updateData: any = { ...data, slug };
+
+        // Normalizar imagenes: si se envía explícitamente, se usa (puede ser []). Si no se envía, no se toca.
+        if (updateProductDto.imagenes !== undefined) {
+            updateData.imagenes = updateProductDto.imagenes || [];
+        }
+
         if (categoriaId) {
             const category = await this.prisma.categoria.findUnique({ where: { id: categoriaId } });
             if (!category) throw new BadRequestException('Categoría no encontrada');
             updateData.categoria = { connect: { id: categoriaId } };
         }
+
         return this.prisma.producto.update({
             where: { id },
             data: updateData,
@@ -71,7 +82,6 @@ export class ProductsService {
     }
 
     async remove(id: string) {
-        // Soft delete: marcar como inactivo
         const product = await this.prisma.producto.findUnique({ where: { id } });
         if (!product) throw new NotFoundException('Producto no encontrado');
         return this.prisma.producto.update({

@@ -11,6 +11,7 @@ import { ComunasModule } from './modules/locations/comunas/comunas.module';
 import { AddressesModule } from '@modules/sales/addresses/addresses.module';
 import { OrdersModule } from '@modules/sales/orders/orders.module';
 import { ShippingModule } from '@modules/sales/shipping/shipping.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { ShippingModule } from '@modules/sales/shipping/shipping.module';
     RegionesModule,
     AddressesModule,
     OrdersModule,
-    ShippingModule
+    ShippingModule,
+    CloudinaryModule
   ],
 })
 export class AppModule { }
