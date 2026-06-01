@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { Providers } from '@/components/providers';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import Navbar from '@/components/layout/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <Header />
+          <Navbar />
           <main className="min-h-screen container mx-auto px-4 py-8">
             {children}
           </main>
