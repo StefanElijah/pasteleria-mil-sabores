@@ -24,7 +24,7 @@ export class ProductsController {
 
     @Get('destacados')
     findFeatured() {
-        return this.productsService.findAll();
+        return this.productsService.findFeatured();
     }
 
     @Get('novedades')

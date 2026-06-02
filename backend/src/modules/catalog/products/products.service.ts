@@ -41,6 +41,14 @@ export class ProductsService {
         return product;
     }
 
+    async findFeatured() {
+        return this.prisma.producto.findMany({
+            where: { destacado: true, activo: true },
+            take: 4,
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+
     async findBySlug(slug: string) {
         const product = await this.prisma.producto.findUnique({
             where: { slug, activo: true },

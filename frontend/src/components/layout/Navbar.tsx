@@ -77,7 +77,7 @@ export default function Navbar() {
     };
 
     const handleSuggestionClick = (productId: string) => {
-        router.push(`/productos/${productId}`);
+        router.push(`/products/${productId}`);
         setSearchTerm('');
         setShowSuggestions(false);
         setIsMenuOpen(false);
@@ -91,7 +91,7 @@ export default function Navbar() {
 
     const navLinks = [
         { href: '/', label: 'Inicio' },
-        { href: '/productos', label: 'Productos' },
+        { href: '/products', label: 'Productos' },
         { href: '/nosotros', label: 'Nosotros' },
         { href: '/contacto', label: 'Contacto' },
     ];
@@ -102,7 +102,7 @@ export default function Navbar() {
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
-                        <img src="/images/logo/logo_pasteleria_sin_fondo.png" alt="Logo" className="h-12 w-auto" />
+                        <img src="https://res.cloudinary.com/dtkxwlj5g/image/upload/q_auto/f_auto/v1780357889/logo_pasteleria_sin_fondo_asbb6y.png" alt="Logo" className="h-12 w-auto" />
                         <span className="font-bold text-xl text-rose-600 hidden md:inline">Pastelería Mil Sabores</span>
                     </Link>
 
@@ -135,7 +135,7 @@ export default function Navbar() {
                                 ) : (
                                     categories.map((cat) => (
                                         <DropdownMenuItem key={cat.id} asChild>
-                                            <Link href={`/categoria/${cat.slug}`} className="cursor-pointer">
+                                            <Link href={`/categories/${cat.slug}`} className="cursor-pointer">
                                                 {cat.icono && <span className="mr-2">{cat.icono}</span>}
                                                 {cat.nombre}
                                             </Link>

@@ -1,3 +1,4 @@
+// app/products/[slug]/page.tsx
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -6,6 +7,7 @@ import { Product } from '@/types';
 import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
 import { Button } from '@/components/ui/button';
+import { formatPrice } from '@/lib/format';
 
 export default function ProductDetailPage() {
     const { slug } = useParams();
@@ -42,33 +44,48 @@ export default function ProductDetailPage() {
             <div className="space-y-4">
                 {product.imagenes && product.imagenes.length > 0 ? (
                     <>
+                        {/* Imagen principal */}
                         <div className="relative h-96 bg-gray-100 rounded-lg">
                             <Image
                                 src={product.imagenes[0]}
                                 alt={product.nombre}
                                 fill
                                 className="object-contain"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             />
                         </div>
+                        {/* Miniaturas (si hay más de una) */}
                         {product.imagenes.length > 1 && (
                             <div className="flex gap-2 overflow-x-auto">
                                 {product.imagenes.slice(1).map((url, idx) => (
-                                    <div key={idx} className="relative w-24 h-24 bg-gray-100 rounded">
-                                        <Image src={url} alt={`${product.nombre} ${idx + 2}`} fill className="object-cover" />
+                                    <div key={idx} className="relative w-24 h-24 bg-gray-100 rounded-md border-2 border-transparent hover:border-rose-500 cursor-pointer">
+                                        <Image
+                                            src={url}
+                                            alt={`${product.nombre} ${idx + 2}`}
+                                            fill
+                                            className="object-cover rounded-md"
+                                            sizes="96px" // tamaño fijo de 96px para la miniatura
+                                        />
                                     </div>
                                 ))}
                             </div>
                         )}
                     </>
                 ) : (
-                    <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">Sin imagen</div>
+                    <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
+                        Sin imagen
+                    </div>
                 )}
             </div>
+
+            {/* Información del producto */}
             <div>
                 <h1 className="text-3xl font-bold">{product.nombre}</h1>
-                <p className="text-2xl text-rose-600 mt-2">${product.precio.toLocaleString()}</p>
+                <p className="text-2xl text-rose-600 mt-2">${formatPrice(product.precio)}</p>
                 {product.precioComparacion && (
-                    <p className="text-gray-400 line-through">${product.precioComparacion.toLocaleString()}</p>
+                    <p className="text-gray-400 line-through">
+                        ${formatPrice(product.precioComparacion)}
+                    </p>
                 )}
                 <p className="text-gray-600 mt-4">{product.descripcion}</p>
                 <div className="mt-6 flex items-center gap-4">

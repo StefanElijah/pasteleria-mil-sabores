@@ -1,3 +1,4 @@
+// ProductCard.tsx
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -5,6 +6,7 @@ import Image from 'next/image';
 import { Product } from '@/types';
 import { useCartStore } from '@/store/cartStore';
 import { Button } from '@/components/ui/button';
+import { formatPrice } from '@/lib/format';
 
 export default function ProductCard({ product }: { product: Product }) {
     const addItem = useCartStore((state) => state.addItem);
@@ -29,6 +31,8 @@ export default function ProductCard({ product }: { product: Product }) {
                             alt={product.nombre}
                             fill
                             className="object-cover"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                            loading="eager"
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -38,10 +42,11 @@ export default function ProductCard({ product }: { product: Product }) {
                 </div>
             </Link>
             <div className="p-4">
-                <Link href={`/products/${product.slug}`}>
+                <Link href={`/productos/${product.slug}`}>
                     <h2 className="text-lg font-semibold hover:text-rose-600">{product.nombre}</h2>
                 </Link>
-                <p className="text-gray-600 mt-1">${product.precio.toLocaleString()}</p>
+                {/* 2. Reemplazar toLocaleString por formatPrice */}
+                <p className="text-gray-600 mt-1">${formatPrice(product.precio)}</p>
                 <Button onClick={handleAddToCart} disabled={isLoading} className="w-full mt-3">
                     {isLoading ? 'Agregando...' : 'Agregar al Carrito'}
                 </Button>
