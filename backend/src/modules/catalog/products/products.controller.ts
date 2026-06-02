@@ -18,8 +18,17 @@ export class ProductsController {
     }
 
     @Get()
-    findAll() {
-        return this.productsService.findAll();
+    findAll(@Query('activo') activo?: string) {
+        // Si no se especifica activo, devolver solo activos (público)
+        if (!activo) {
+            return this.productsService.findAll(true); // solo activos
+        }
+        // Si se especifica 'all' o 'false', devolver todos
+        if (activo === 'all' || activo === 'false') {
+            return this.productsService.findAll(false); // incluir inactivos
+        }
+        // Si se especifica 'true', devolver solo activos
+        return this.productsService.findAll(true);
     }
 
     @Get('destacados')

@@ -22,9 +22,10 @@ export class ProductsService {
         });
     }
 
-    async findAll() {
+    async findAll(onlyActive: boolean = true) {
+        const where = onlyActive ? { activo: true } : {};
         return this.prisma.producto.findMany({
-            where: { activo: true },
+            where,
             include: { categoria: true },
             orderBy: { createdAt: 'desc' },
         });
