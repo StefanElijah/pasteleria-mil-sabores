@@ -14,9 +14,9 @@ export default function EditProductPage() {
 
     useEffect(() => {
         Promise.all([api.get(`/products/${id}`), api.get('/categories')]).then(([prodRes, catRes]) => {
-            // Normalizar imagenes: asegurar que sea un array
             const productData = prodRes.data;
             productData.imagenes = productData.imagenes || [];
+            productData.imagenPrincipal = productData.imagenPrincipal || null;
             setProduct(productData);
             setCategories(catRes.data);
         });

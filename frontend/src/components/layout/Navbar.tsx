@@ -135,7 +135,7 @@ export default function Navbar() {
                                 ) : (
                                     categories.map((cat) => (
                                         <DropdownMenuItem key={cat.id} asChild>
-                                            <Link href={`/categories/${cat.slug}`} className="cursor-pointer">
+                                            <Link href={`/categoria/${cat.slug}`} className="cursor-pointer">
                                                 {cat.icono && <span className="mr-2">{cat.icono}</span>}
                                                 {cat.nombre}
                                             </Link>

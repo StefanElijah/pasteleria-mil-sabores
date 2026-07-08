@@ -38,6 +38,10 @@ export class CreateProductDto {
     imagenes?: string[];
 
     @IsOptional()
+    @IsString()
+    imagenPrincipal?: string;
+
+    @IsOptional()
     @IsBoolean()
     @Type(() => Boolean)
     novedad?: boolean;

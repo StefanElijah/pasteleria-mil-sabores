@@ -12,6 +12,7 @@ import { formatPrice } from '@/lib/format';
 export default function ProductDetailPage() {
     const { slug } = useParams();
     const [product, setProduct] = useState<Product | null>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(true);
     const addItem = useCartStore((state) => state.addItem);
@@ -20,7 +21,10 @@ export default function ProductDetailPage() {
     useEffect(() => {
         if (slug) {
             api.get(`/products/slug/${slug}`)
-                .then(({ data }) => setProduct(data))
+                .then(({ data }) => {
+                    setProduct(data);
+                    setSelectedImage(data.imagenPrincipal || data.imagenes?.[0] || null);
+                })
                 .finally(() => setLoading(false));
         }
     }, [slug]);
@@ -35,38 +39,49 @@ export default function ProductDetailPage() {
         }
     };
 
+    const mainImage = selectedImage || product?.imagenPrincipal || product?.imagenes?.[0];
+    const allImages = [
+        ...(product?.imagenPrincipal ? [product.imagenPrincipal] : []),
+        ...(product?.imagenes || []),
+    ];
+
     if (loading) return <div className="text-center py-10">Cargando...</div>;
     if (!product) return <div className="text-center py-10">Producto no encontrado</div>;
 
     return (
         <div className="grid md:grid-cols-2 gap-8">
-            {/* Galería de imágenes */}
             <div className="space-y-4">
-                {product.imagenes && product.imagenes.length > 0 ? (
+                {mainImage ? (
                     <>
-                        {/* Imagen principal */}
                         <div className="relative h-96 bg-gray-100 rounded-lg">
                             <Image
-                                src={product.imagenes[0]}
+                                src={mainImage}
                                 alt={product.nombre}
                                 fill
                                 className="object-contain"
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             />
                         </div>
-                        {/* Miniaturas (si hay más de una) */}
-                        {product.imagenes.length > 1 && (
+                        {allImages.length > 1 && (
                             <div className="flex gap-2 overflow-x-auto">
-                                {product.imagenes.slice(1).map((url, idx) => (
-                                    <div key={idx} className="relative w-24 h-24 bg-gray-100 rounded-md border-2 border-transparent hover:border-rose-500 cursor-pointer">
+                                {allImages.map((url, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setSelectedImage(url)}
+                                        className={`relative w-24 h-24 bg-gray-100 rounded-md border-2 flex-shrink-0 transition-colors ${
+                                            url === mainImage
+                                                ? 'border-rose-500'
+                                                : 'border-transparent hover:border-rose-300'
+                                        }`}
+                                    >
                                         <Image
                                             src={url}
-                                            alt={`${product.nombre} ${idx + 2}`}
+                                            alt={`${product.nombre} ${idx + 1}`}
                                             fill
                                             className="object-cover rounded-md"
-                                            sizes="96px" // tamaño fijo de 96px para la miniatura
+                                            sizes="96px"
                                         />
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
                         )}
@@ -78,7 +93,6 @@ export default function ProductDetailPage() {
                 )}
             </div>
 
-            {/* Información del producto */}
             <div>
                 <h1 className="text-3xl font-bold">{product.nombre}</h1>
                 <p className="text-2xl text-rose-600 mt-2">${formatPrice(product.precio)}</p>

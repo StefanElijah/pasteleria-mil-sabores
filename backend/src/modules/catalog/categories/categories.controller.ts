@@ -19,6 +19,9 @@ export class CategoriesController {
 
     @Get()
     findAll(@Query('activo') activo?: string) {
+        if (activo === 'all') {
+            return this.categoriesService.findAll(null);
+        }
         const isActive = activo === 'true' ? true : activo === 'false' ? false : undefined;
         return this.categoriesService.findAll(isActive);
     }

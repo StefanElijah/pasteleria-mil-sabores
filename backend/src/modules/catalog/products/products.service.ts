@@ -16,6 +16,7 @@ export class ProductsService {
             data: {
                 ...data,
                 imagenes: data.imagenes || [],
+                imagenPrincipal: data.imagenPrincipal || null,
                 categoria: { connect: { id: categoriaId } },
             },
             include: { categoria: true },
@@ -75,6 +76,10 @@ export class ProductsService {
         // Normalizar imagenes: si se envía explícitamente, se usa (puede ser []). Si no se envía, no se toca.
         if (updateProductDto.imagenes !== undefined) {
             updateData.imagenes = updateProductDto.imagenes || [];
+        }
+
+        if (updateProductDto.imagenPrincipal !== undefined) {
+            updateData.imagenPrincipal = updateProductDto.imagenPrincipal || null;
         }
 
         if (categoriaId) {

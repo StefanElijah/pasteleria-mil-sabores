@@ -39,7 +39,7 @@ export class CartService {
                 name: product.nombre,
                 price: product.precio,
                 quantity,
-                image: product.imagenes?.[0] || null,
+                image: product.imagenPrincipal || product.imagenes?.[0] || null,
             });
         }
         cart.total = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);

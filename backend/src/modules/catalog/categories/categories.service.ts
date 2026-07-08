@@ -17,11 +17,15 @@ export class CategoriesService {
         });
     }
 
-    async findAll(activo?: boolean) {
-        // Si no se especifica activo, devolvemos solo las activas (soft delete)
+    async findAll(activo?: boolean | null) {
         const where: any = {};
-        if (activo !== undefined) where.activo = activo;
-        else where.activo = true; // por defecto solo activas
+        if (activo === null) {
+            // No filter - return all categories
+        } else if (activo !== undefined) {
+            where.activo = activo;
+        } else {
+            where.activo = true; // por defecto solo activas
+        }
         return this.prisma.categoria.findMany({
             where,
             orderBy: { nombre: 'asc' },

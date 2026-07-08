@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Category } from '@/types';
-import ImageUpload from './ImageUpload';
-import { useState } from 'react';
+import MainImageUpload from './MainImageUpload';
+import ImageGalleryUpload from './ImageGalleryUpload';
 
 const productSchema = z.object({
     nombre: z.string().min(1),
@@ -17,7 +17,8 @@ const productSchema = z.object({
     precio: z.number().min(0),
     precioComparacion: z.number().min(0).optional().nullable(),
     stock: z.number().int().min(0),
-    imagenes: z.array(z.string()).optional(),
+    imagenPrincipal: z.string().optional().nullable(),
+    imagenes: z.array(z.string()).max(5).optional(),
     novedad: z.boolean().optional(),
     destacado: z.boolean().optional(),
     activo: z.boolean().optional(),
@@ -43,17 +44,12 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
             stock: 0,
             precio: 0,
             imagenes: [],
+            imagenPrincipal: null,
         },
     });
+
+    const imagenPrincipal = watch('imagenPrincipal') || null;
     const imagenes = watch('imagenes') || [];
-
-    const handleImageChange = (url: string) => {
-        setValue('imagenes', [...imagenes, url]);
-    };
-
-    const handleImageRemove = (urlToRemove: string) => {
-        setValue('imagenes', imagenes.filter((url: string) => url !== urlToRemove));
-    };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -120,10 +116,24 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
                     Activo
                 </label>
             </div>
-            <ImageUpload
-                value={imagenes}
-                onChange={(newImages) => setValue('imagenes', newImages)}
-            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
+                <div>
+                    <label className="block mb-2 font-medium">Imagen principal</label>
+                    <MainImageUpload
+                        value={imagenPrincipal}
+                        onChange={(url) => setValue('imagenPrincipal', url)}
+                    />
+                </div>
+                <div>
+                    <label className="block mb-2 font-medium">Galería de imágenes</label>
+                    <ImageGalleryUpload
+                        value={imagenes}
+                        onChange={(newImages) => setValue('imagenes', newImages)}
+                    />
+                </div>
+            </div>
+
             <Button type="submit" disabled={isLoading}>
                 {isLoading ? 'Guardando...' : 'Guardar'}
             </Button>

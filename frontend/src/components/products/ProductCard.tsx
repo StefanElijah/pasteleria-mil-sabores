@@ -36,20 +36,23 @@ export default function ProductCard({ product }: { product: Product }) {
             )}
             <Link href={`/products/${product.slug}`}>
                 <div className="relative h-48 bg-gray-200">
-                    {product.imagenes && product.imagenes[0] ? (
-                        <Image
-                            src={product.imagenes[0]}
-                            alt={product.nombre}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                            loading="eager"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            Sin imagen
-                        </div>
-                    )}
+                    {(() => {
+                        const imgSrc = product.imagenPrincipal || product.imagenes?.[0];
+                        return imgSrc ? (
+                            <Image
+                                src={imgSrc}
+                                alt={product.nombre}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                                loading="eager"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                Sin imagen
+                            </div>
+                        );
+                    })()}
                 </div>
             </Link>
             <div className="p-4">

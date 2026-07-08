@@ -21,6 +21,7 @@ export interface Product {
     precio: number;
     precioComparacion?: number;
     stock: number;
+    imagenPrincipal?: string;
     imagenes: string[];
     novedad: boolean;
     destacado: boolean;

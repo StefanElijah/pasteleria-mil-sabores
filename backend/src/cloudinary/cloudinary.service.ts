@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
-import * as toStream from 'buffer-to-stream';
+import toStream from 'buffer-to-stream';
 
 @Injectable()
 export class CloudinaryService {
