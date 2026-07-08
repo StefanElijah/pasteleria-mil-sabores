@@ -1,7 +1,9 @@
 'use client';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Category } from '@/types';
 import MainImageUpload from './MainImageUpload';
 import ImageGalleryUpload from './ImageGalleryUpload';
+import { useSlug } from '@/hooks/useSlug';
 
 const productSchema = z.object({
     nombre: z.string().min(1),
@@ -48,6 +51,15 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
         },
     });
 
+    const slug = useSlug({ watch, setValue });
+    const [copied, setCopied] = useState(false);
+
+    const handleCopySlug = async () => {
+        await navigator.clipboard.writeText(slug);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     const imagenPrincipal = watch('imagenPrincipal') || null;
     const imagenes = watch('imagenes') || [];
 
@@ -59,8 +71,19 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
                 {errors.nombre && <p className="text-red-500 text-sm">{errors.nombre.message}</p>}
             </div>
             <div>
-                <label>Slug *</label>
-                <Input {...register('slug')} />
+                <label className="text-muted-foreground text-sm">Slug (auto-generado)</label>
+                <div className="flex gap-2">
+                    <Input {...register('slug')} readOnly className="bg-muted cursor-default" />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleCopySlug}
+                        title="Copiar slug"
+                    >
+                        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                </div>
                 {errors.slug && <p className="text-red-500 text-sm">{errors.slug.message}</p>}
             </div>
             <div>
