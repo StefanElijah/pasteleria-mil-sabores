@@ -51,17 +51,17 @@ async function main() {
     const tortas = await prisma.categoria.upsert({
         where: { slug: 'tortas' },
         update: {},
-        create: { nombre: 'Tortas', slug: 'tortas', icono: '🎂', activo: true },
+        create: { nombre: 'Tortas', slug: 'tortas', activo: true },
     });
     const pasteles = await prisma.categoria.upsert({
         where: { slug: 'pasteles' },
         update: {},
-        create: { nombre: 'Pasteles', slug: 'pasteles', icono: '🍰', activo: true },
+        create: { nombre: 'Pasteles', slug: 'pasteles', activo: true },
     });
     const galletas = await prisma.categoria.upsert({
         where: { slug: 'galletas' },
         update: {},
-        create: { nombre: 'Galletas', slug: 'galletas', icono: '🍪', activo: true },
+        create: { nombre: 'Galletas', slug: 'galletas', activo: true },
     });
 
     // 4. Usuario administrador

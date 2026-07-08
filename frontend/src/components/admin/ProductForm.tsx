@@ -14,18 +14,22 @@ import ImageGalleryUpload from './ImageGalleryUpload';
 import { useSlug } from '@/hooks/useSlug';
 
 const productSchema = z.object({
-    nombre: z.string().min(1),
-    slug: z.string().min(1),
+    nombre: z.string().min(1, "El nombre es requerido").max(100, "Máximo 100 caracteres"),
+    slug: z
+        .string()
+        .min(1, "El slug es requerido")
+        .max(100, "Máximo 100 caracteres")
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Formato inválido (solo minúsculas, números y guiones)"),
     descripcion: z.string().optional(),
-    precio: z.number().min(0),
+    precio: z.number().min(1, "El precio es requerido y debe ser mayor a 0"),
     precioComparacion: z.number().min(0).optional().nullable(),
-    stock: z.number().int().min(0),
-    imagenPrincipal: z.string().optional().nullable(),
+    stock: z.number().int().min(1, "El stock debe ser al menos 1"),
+    imagenPrincipal: z.string().min(1, "La imagen principal es requerida"),
     imagenes: z.array(z.string()).max(5).optional(),
     novedad: z.boolean().optional(),
     destacado: z.boolean().optional(),
     activo: z.boolean().optional(),
-    categoriaId: z.string().min(1),
+    categoriaId: z.string().min(1, "La categoría es requerida"),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -44,10 +48,10 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
             novedad: false,
             destacado: false,
             activo: true,
-            stock: 0,
             precio: 0,
+            stock: 0,
             imagenes: [],
-            imagenPrincipal: null,
+            imagenPrincipal: "",
         },
     });
 
@@ -60,7 +64,7 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const imagenPrincipal = watch('imagenPrincipal') || null;
+    const imagenPrincipal = watch('imagenPrincipal') || '';
     const imagenes = watch('imagenes') || [];
 
     return (
@@ -90,20 +94,15 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
                 <label>Descripción</label>
                 <Textarea {...register('descripcion')} rows={3} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label>Precio *</label>
-                    <Input type="number" step="1" {...register('precio', { valueAsNumber: true })} />
-                    {errors.precio && <p className="text-red-500 text-sm">{errors.precio.message}</p>}
-                </div>
-                <div>
-                    <label>Precio Comparación</label>
-                    <Input type="number" step="1" {...register('precioComparacion', { valueAsNumber: true })} />
-                </div>
+            <div>
+                <label>Precio *</label>
+                <Input type="number" step="1" {...register('precio', { valueAsNumber: true })} />
+                {errors.precio && <p className="text-red-500 text-sm">{errors.precio.message}</p>}
             </div>
             <div>
                 <label>Stock *</label>
                 <Input type="number" {...register('stock', { valueAsNumber: true })} />
+                {errors.stock && <p className="text-red-500 text-sm">{errors.stock.message}</p>}
             </div>
             <div>
                 <label>Categoría *</label>
@@ -115,6 +114,7 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
                         </option>
                     ))}
                 </select>
+                {errors.categoriaId && <p className="text-red-500 text-sm">{errors.categoriaId.message}</p>}
             </div>
             <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2">
@@ -145,8 +145,9 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
                     <label className="block mb-2 font-medium">Imagen principal</label>
                     <MainImageUpload
                         value={imagenPrincipal}
-                        onChange={(url) => setValue('imagenPrincipal', url)}
+                        onChange={(url) => setValue('imagenPrincipal', url || '')}
                     />
+                    {errors.imagenPrincipal && <p className="text-red-500 text-sm">{errors.imagenPrincipal.message}</p>}
                 </div>
                 <div>
                     <label className="block mb-2 font-medium">Galería de imágenes</label>

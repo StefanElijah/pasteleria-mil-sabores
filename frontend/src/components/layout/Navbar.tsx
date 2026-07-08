@@ -23,7 +23,6 @@ interface Category {
     id: string;
     nombre: string;
     slug: string;
-    icono?: string;
     activo: boolean;
 }
 
@@ -136,7 +135,6 @@ export default function Navbar() {
                                     categories.map((cat) => (
                                         <DropdownMenuItem key={cat.id} asChild>
                                             <Link href={`/categoria/${cat.slug}`} className="cursor-pointer">
-                                                {cat.icono && <span className="mr-2">{cat.icono}</span>}
                                                 {cat.nombre}
                                             </Link>
                                         </DropdownMenuItem>
@@ -280,7 +278,6 @@ export default function Navbar() {
                                             className="block py-1 text-sm hover:text-rose-600"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
-                                            {cat.icono && <span className="mr-2">{cat.icono}</span>}
                                             {cat.nombre}
                                         </Link>
                                     ))}

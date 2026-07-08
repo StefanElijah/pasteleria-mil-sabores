@@ -36,7 +36,6 @@ export interface Category {
     id: string;
     nombre: string;
     slug: string;
-    icono?: string;
     activo: boolean;
     createdAt: string;
     updatedAt: string;

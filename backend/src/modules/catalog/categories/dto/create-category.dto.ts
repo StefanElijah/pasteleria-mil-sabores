@@ -13,11 +13,6 @@ export class CreateCategoryDto {
     slug!: string;
 
     @IsOptional()
-    @IsString()
-    @MaxLength(200)
-    icono?: string;
-
-    @IsOptional()
     @IsBoolean()
     @Transform(({ value }) => value === 'true' || value === true)
     activo?: boolean;

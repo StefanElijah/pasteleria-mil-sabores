@@ -41,7 +41,6 @@ export default function CategoriaPage() {
     return (
         <div>
             <h1 className="text-3xl font-bold mb-2">{category.nombre}</h1>
-            {category.icono && <p className="text-2xl mb-4">{category.icono}</p>}
             <p className="text-gray-600 mb-6">
                 {products.length} producto{products.length !== 1 ? 's' : ''} encontrado{products.length !== 1 ? 's' : ''}
             </p>

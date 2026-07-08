@@ -7,13 +7,13 @@ export class CategoriesService {
     constructor(@Inject('PrismaClient') private prisma: any) { }
 
     async create(createCategoryDto: CreateCategoryDto) {
-        const { nombre, slug, icono, activo = true } = createCategoryDto;
+        const { nombre, slug, activo = true } = createCategoryDto;
         const existing = await this.prisma.categoria.findUnique({ where: { slug } });
         if (existing) throw new ConflictException('El slug ya existe');
-        const existingName = await this.prisma.categoria.findUnique({ where: { nombre } });
+        const existingName = await this.prisma.categoria.findFirst({ where: { nombre } });
         if (existingName) throw new ConflictException('Ya existe una categoría con ese nombre');
         return this.prisma.categoria.create({
-            data: { nombre, slug, icono, activo },
+            data: { nombre, slug, activo },
         });
     }
 

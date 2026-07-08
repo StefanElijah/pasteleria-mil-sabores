@@ -117,7 +117,6 @@ model Categoria {
   id        String   @id @default(cuid())
   nombre    String
   slug      String   @unique
-  icono     String?
   activo    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

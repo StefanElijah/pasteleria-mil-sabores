@@ -19,9 +19,7 @@ export function useSlug({
   const nombre = watch(nombreField);
 
   useEffect(() => {
-    setValue(slugField, generateSlug(nombre || ""), {
-      shouldValidate: true,
-    });
+    setValue(slugField, generateSlug(nombre || ""));
   }, [nombre, setValue, slugField]);
 
   return watch(slugField) as string;

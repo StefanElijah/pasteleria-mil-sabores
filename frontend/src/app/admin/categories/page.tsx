@@ -52,7 +52,6 @@ export default function AdminCategoriesPage() {
                         <tr>
                             <th className="p-3">Nombre</th>
                             <th className="p-3">Slug</th>
-                            <th className="p-3">Icono</th>
                             <th className="p-3">Activo</th>
                             <th className="p-3">Acciones</th>
                         </tr>
@@ -62,7 +61,6 @@ export default function AdminCategoriesPage() {
                             <tr key={cat.id} className="border-b">
                                 <td className="p-3">{cat.nombre}</td>
                                 <td className="p-3">{cat.slug}</td>
-                                <td className="p-3">{cat.icono}</td>
                                 <td className="p-3">
                                     <Switch checked={cat.activo} onCheckedChange={() => toggleActive(cat.id, cat.activo)} />
                                 </td>

@@ -10,9 +10,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useSlug } from '@/hooks/useSlug';
 
 const categorySchema = z.object({
-    nombre: z.string().min(1),
-    slug: z.string().min(1),
-    icono: z.string().optional(),
+    nombre: z.string().min(1, "El nombre es requerido").max(50, "Máximo 50 caracteres"),
+    slug: z
+        .string()
+        .min(1, "El slug es requerido")
+        .max(50, "Máximo 50 caracteres")
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Formato inválido (solo minúsculas, números y guiones)"),
     activo: z.boolean().optional(),
 });
 
@@ -44,7 +47,7 @@ export function CategoryForm({ initialData, onSubmit, isLoading }: CategoryFormP
             <div>
                 <label>Nombre *</label>
                 <Input {...register('nombre')} />
-                {errors.nombre && <p className="text-red-500">{errors.nombre.message}</p>}
+                {errors.nombre && <p className="text-red-500 text-sm">{errors.nombre.message}</p>}
             </div>
             <div>
                 <label className="text-muted-foreground text-sm">Slug (auto-generado)</label>
@@ -60,10 +63,7 @@ export function CategoryForm({ initialData, onSubmit, isLoading }: CategoryFormP
                         {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                     </Button>
                 </div>
-            </div>
-            <div>
-                <label>Icono (emoji o URL)</label>
-                <Input {...register('icono')} />
+                {errors.slug && <p className="text-red-500 text-sm">{errors.slug.message}</p>}
             </div>
             <div className="flex items-center gap-2">
                 <Checkbox
