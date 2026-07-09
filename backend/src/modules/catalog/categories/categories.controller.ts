@@ -18,12 +18,13 @@ export class CategoriesController {
     }
 
     @Get()
-    findAll(@Query('activo') activo?: string) {
+    findAll(@Query('activo') activo?: string, @Query('includeProducts') includeProducts?: string) {
+        const withProducts = includeProducts === 'true';
         if (activo === 'all') {
-            return this.categoriesService.findAll(null);
+            return this.categoriesService.findAll(null, withProducts);
         }
         const isActive = activo === 'true' ? true : activo === 'false' ? false : undefined;
-        return this.categoriesService.findAll(isActive);
+        return this.categoriesService.findAll(isActive, withProducts);
     }
 
     @Get('slug/:slug')

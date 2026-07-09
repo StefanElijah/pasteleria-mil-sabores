@@ -18,13 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-interface Category {
-    id: string;
-    nombre: string;
-    slug: string;
-    activo: boolean;
-}
+import { Category } from '@/types';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,7 +37,9 @@ export default function Navbar() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const { data } = await api.get('/categories?activo=true');
+                const { data } = await api.get('/categories?activo=true', {
+                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+                });
                 setCategories(data);
             } catch (error) {
                 console.error('Error cargando categorías:', error);
@@ -52,7 +48,7 @@ export default function Navbar() {
             }
         };
         fetchCategories();
-    }, []);
+    }, [pathname]);
 
     // Cerrar sugerencias al hacer clic fuera
     useEffect(() => {

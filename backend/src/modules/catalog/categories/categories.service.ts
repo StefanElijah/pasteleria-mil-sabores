@@ -17,19 +17,20 @@ export class CategoriesService {
         });
     }
 
-    async findAll(activo?: boolean | null) {
+    async findAll(activo?: boolean | null, includeProducts = false) {
         const where: any = {};
         if (activo === null) {
-            // No filter - return all categories
         } else if (activo !== undefined) {
             where.activo = activo;
         } else {
-            where.activo = true; // por defecto solo activas
+            where.activo = true;
         }
         return this.prisma.categoria.findMany({
             where,
             orderBy: { nombre: 'asc' },
-            include: { productos: { select: { id: true, nombre: true } } },
+            ...(includeProducts
+                ? { include: { productos: { select: { id: true, nombre: true } } } }
+                : {}),
         });
     }
 
