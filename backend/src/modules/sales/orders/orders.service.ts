@@ -10,7 +10,7 @@ export class OrdersService {
         private cartService: CartService,
     ) { }
 
-    private async calcularEnvio(comunaId: string, metodoEnvio: string): Promise<{ costo: number; fechaEstimada: Date }> {
+    async calculateShipping(comunaId: string, metodoEnvio: string): Promise<{ costo: number; fechaEstimada: Date }> {
         const comuna = await this.prisma.comuna.findUnique({
             where: { id: comunaId },
             include: { region: true },
@@ -105,7 +105,7 @@ export class OrdersService {
         let envioCosto = costoEnvio;
         let fechaEstimadaEntrega: Date;
         if (!envioCosto) {
-            const envioCalc = await this.calcularEnvio(direccionFinal.comunaId, metodoEnvio);
+            const envioCalc = await this.calculateShipping(direccionFinal.comunaId, metodoEnvio);
             envioCosto = envioCalc.costo;
             fechaEstimadaEntrega = envioCalc.fechaEstimada;
         } else {
@@ -224,9 +224,10 @@ export class OrdersService {
         return result;
     }
 
-    async findAllByUser(userId: string) {
+    async findAll(user: { userId?: string; rol?: string }) {
+        const where = user.rol === 'ADMIN' ? {} : { usuarioId: user.userId };
         return this.prisma.pedido.findMany({
-            where: { usuarioId: userId },
+            where,
             include: {
                 items: { include: { producto: true } },
                 direccion: { include: { comuna: { include: { region: true } } } },
@@ -236,7 +237,12 @@ export class OrdersService {
         });
     }
 
-    async findOne(id: string, userId?: string) {
+    private checkOwnership(order: any, userId: string, rol?: string) {
+        if (rol === 'ADMIN') return;
+        if (order.usuarioId !== userId) throw new BadRequestException('No tienes permiso');
+    }
+
+    async findOne(id: string, userId: string, rol?: string) {
         const order = await this.prisma.pedido.findUnique({
             where: { id },
             include: {
@@ -246,11 +252,11 @@ export class OrdersService {
             },
         });
         if (!order) throw new NotFoundException('Pedido no encontrado');
-        if (userId && order.usuarioId !== userId) throw new BadRequestException('No tienes permiso');
+        this.checkOwnership(order, userId, rol);
         return order;
     }
 
-    async findByNumero(numeroPedido: string, userId?: string) {
+    async findByNumero(numeroPedido: string, userId: string, rol?: string) {
         const order = await this.prisma.pedido.findUnique({
             where: { numeroPedido },
             include: {
@@ -260,12 +266,12 @@ export class OrdersService {
             },
         });
         if (!order) throw new NotFoundException('Pedido no encontrado');
-        if (userId && order.usuarioId !== userId) throw new BadRequestException('No tienes permiso');
+        this.checkOwnership(order, userId, rol);
         return order;
     }
 
-    async updateStatus(id: string, estado: EstadoPedido, userId?: string) {
-        const order = await this.findOne(id, userId);
+    async updateStatus(id: string, estado: EstadoPedido, userId: string, rol?: string) {
+        const order = await this.findOne(id, userId, rol);
         return this.prisma.pedido.update({
             where: { id },
             data: { estado },

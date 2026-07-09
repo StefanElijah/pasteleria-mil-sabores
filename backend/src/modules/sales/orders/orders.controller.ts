@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req, Query } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
@@ -19,30 +19,33 @@ export class OrdersController {
         return this.ordersService.create(userId, createOrderDto, cartId);
     }
 
+    @Get('numero/:numeroPedido')
+    @UseGuards(JwtAuthGuard)
+    async findByNumero(@Param('numeroPedido') numeroPedido: string, @Req() req: any) {
+        return this.ordersService.findByNumero(numeroPedido, req.user.userId, req.user.rol);
+    }
+
+    @Get('shipping')
+    async calculateShipping(@Query('comunaId') comunaId: string, @Query('metodo') metodo: string) {
+        return this.ordersService.calculateShipping(comunaId, metodo);
+    }
+
     @Get()
     @UseGuards(JwtAuthGuard)
     async findAll(@Req() req: any) {
-        return this.ordersService.findAllByUser(req.user.userId);
+        return this.ordersService.findAll(req.user);
     }
 
     @Get(':id')
     @UseGuards(JwtAuthGuard)
     async findOne(@Param('id') id: string, @Req() req: any) {
-        return this.ordersService.findOne(id, req.user.userId);
+        return this.ordersService.findOne(id, req.user.userId, req.user.rol);
     }
 
     @Patch(':id/status')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')
-    async updateStatus(@Param('id') id: string, @Body('estado') estado: string) {
-        return this.ordersService.updateStatus(id, estado as any);
+    async updateStatus(@Param('id') id: string, @Body('estado') estado: string, @Req() req: any) {
+        return this.ordersService.updateStatus(id, estado as any, req.user.userId, req.user.rol);
     }
-
-    @Get('numero/:numeroPedido')
-    @UseGuards(OptionalJwtAuthGuard)
-    async findByNumero(@Param('numeroPedido') numeroPedido: string, @Req() req: any) {
-        const userId = req.user?.userId;
-        return this.ordersService.findByNumero(numeroPedido, userId);
-    }
-
 }
