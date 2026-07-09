@@ -159,6 +159,8 @@ export class OrdersService {
 
         const total = subtotal + envioCosto - discountAmount;
         const orderNumber = `ORD-${Date.now()}`;
+        // Generar trackingToken solo si es un pedido de invitado (sin userId)
+        const trackingToken = userId ? null : require('crypto').randomUUID();
 
         // 6. Crear pedido y envío en transacción
         const result = await this.prisma.$transaction(async (tx: any) => {
@@ -180,6 +182,7 @@ export class OrdersService {
                     telefonoDestinatario,
                     transaccionId,
                     comprobantePago,
+                    trackingToken,
                     items: { create: orderItemsData },
                 },
                 include: { items: true, direccion: true },
@@ -267,6 +270,19 @@ export class OrdersService {
         });
         if (!order) throw new NotFoundException('Pedido no encontrado');
         this.checkOwnership(order, userId, rol);
+        return order;
+    }
+
+    async findByTrackingToken(token: string) {
+        const order = await this.prisma.pedido.findUnique({
+            where: { trackingToken: token },
+            include: {
+                items: { include: { producto: true } },
+                direccion: { include: { comuna: { include: { region: true } } } },
+                envio: true,
+            },
+        });
+        if (!order) throw new NotFoundException('Pedido no encontrado');
         return order;
     }
 

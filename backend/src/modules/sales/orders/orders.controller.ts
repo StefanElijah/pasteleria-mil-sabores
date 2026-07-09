@@ -25,6 +25,11 @@ export class OrdersController {
         return this.ordersService.findByNumero(numeroPedido, req.user.userId, req.user.rol);
     }
 
+    @Get('track/:token')
+    async findByTrackingToken(@Param('token') token: string) {
+        return this.ordersService.findByTrackingToken(token);
+    }
+
     @Get('shipping')
     async calculateShipping(@Query('comunaId') comunaId: string, @Query('metodo') metodo: string) {
         return this.ordersService.calculateShipping(comunaId, metodo);

@@ -302,11 +302,15 @@ model Pedido {
   envio Envio?
   descuentosUsos DescuentoUso[]
 
+  // Token único para que un invitado pueda consultar su pedido sin login
+  trackingToken String? @unique
+
   @@index([usuarioId])
   @@index([numeroPedido])
   @@index([estado])
   @@index([createdAt])
   @@index([descuentoId])
+  @@index([trackingToken])
   @@map("pedidos")
 }
 

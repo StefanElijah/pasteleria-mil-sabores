@@ -4,10 +4,10 @@ import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
     constructor() {
         const cookieExtractor = (req: Request) => {
-            return req?.cookies?.access_token || null;
+            return req?.cookies?.refresh_token || null;
         };
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([

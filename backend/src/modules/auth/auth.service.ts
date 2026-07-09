@@ -1,4 +1,4 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
@@ -22,18 +22,35 @@ export class AuthService {
         return null;
     }
 
+    async findById(userId: string) {
+        const user = await this.prisma.usuario.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+        const { password: _, ...result } = user;
+        return result;
+    }
+
+    private getTokens(userId: string, email: string, rol: string) {
+        const payload = { sub: userId, email, rol };
+        return {
+            access_token: this.jwtService.sign(payload, { expiresIn: '15m' }),
+            refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
+        };
+    }
+
     async login(loginDto: LoginDto, anonCartId?: string) {
         const user = await this.validateUser(loginDto.email, loginDto.password);
         if (!user) throw new UnauthorizedException('Credenciales incorrectas');
-        // Fusionar carrito anónimo si existe
         if (anonCartId && anonCartId.startsWith('anon_')) {
             await this.cartService.mergeCarts(anonCartId, user.id);
         }
-        const payload = { sub: user.id, email: user.email, rol: user.rol };
-        return {
-            access_token: this.jwtService.sign(payload),
-            user,
-        };
+        const tokens = this.getTokens(user.id, user.email, user.rol);
+        return { ...tokens, user };
+    }
+
+    async refresh(userId: string) {
+        const user = await this.prisma.usuario.findUnique({ where: { id: userId } });
+        if (!user) throw new UnauthorizedException('Usuario no válido');
+        return this.getTokens(user.id, user.email, user.rol);
     }
 
     async register(registerDto: RegisterDto) {
