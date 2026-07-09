@@ -4,8 +4,17 @@ import { useParams } from 'next/navigation';
 import api from '@/lib/axios';
 import { Order } from '@/types';
 import { useRequireAuth } from '@/hooks/useAuth';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 export default function OrderDetailPage() {
+    return (
+        <ProtectedRoute>
+            <OrderDetailContent />
+        </ProtectedRoute>
+    );
+}
+
+function OrderDetailContent() {
     const { id } = useParams();
     const { user } = useRequireAuth();
     const [order, setOrder] = useState<Order | null>(null);

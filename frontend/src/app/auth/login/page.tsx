@@ -12,11 +12,12 @@ export default function LoginPage() {
     const cartId = useCartStore((state) => state.cartId);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await login(email, password, cartId || undefined);
+            await login(email, password, rememberMe, cartId || undefined);
             router.push('/');
         } catch (error) {
             alert('Credenciales incorrectas');
@@ -44,6 +45,15 @@ export default function LoginPage() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
+                    <label className="flex items-center mb-4 text-sm text-gray-600">
+                        <input
+                            type="checkbox"
+                            className="mr-2"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                        />
+                        Mantener sesión iniciada
+                    </label>
                     <button
                         type="submit"
                         disabled={isLoading}

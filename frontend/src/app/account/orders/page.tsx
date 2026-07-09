@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { Order } from '@/types';
 import { useRequireAuth } from '@/hooks/useAuth';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Package, ChevronRight } from 'lucide-react';
@@ -25,6 +26,14 @@ const ESTADO_COLORS: Record<string, string> = {
 };
 
 export default function OrdersPage() {
+    return (
+        <ProtectedRoute>
+            <OrdersContent />
+        </ProtectedRoute>
+    );
+}
+
+function OrdersContent() {
     const { user } = useRequireAuth();
     const fetchCart = useCartStore((s) => s.fetchCart);
     const [orders, setOrders] = useState<Order[]>([]);

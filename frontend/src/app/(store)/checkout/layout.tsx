@@ -1,5 +1,5 @@
 'use client';
-import { useRequireAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { useCheckoutStore } from '@/store/checkoutStore';
 import { useCheckoutDraft } from '@/hooks/useCheckoutDraft';
@@ -18,7 +18,7 @@ const STEPS = [
 ];
 
 export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
-    const { user, isLoading } = useRequireAuth();
+    const { user, isLoading } = useAuthStore();
     const { items, total, subtotal, discount } = useCartStore();
     const { shippingCost, shippingInfo } = useCheckoutStore();
     const pathname = usePathname();
@@ -49,8 +49,6 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
     if (isLoading) {
         return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
     }
-
-    if (!user) return null;
 
     if (items.length === 0 && activeStep < 3) {
         return (

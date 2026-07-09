@@ -5,30 +5,26 @@ import { User } from '@/types';
 
 interface AuthState {
     user: User | null;
-    token: string | null;
     isLoading: boolean;
-    login: (email: string, password: string, anonCartId?: string) => Promise<void>;
+    login: (email: string, password: string, rememberMe?: boolean, anonCartId?: string) => Promise<void>;
     register: (data: any) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
     loadUser: () => Promise<void>;
     updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set, get) => ({
+        (set) => ({
             user: null,
-            token: null,
-            isLoading: false,
-            login: async (email, password, anonCartId) => {
+            isLoading: true,
+            login: async (email, password, rememberMe, anonCartId) => {
                 set({ isLoading: true });
                 try {
-                    const headers = anonCartId ? { 'x-cart-id': anonCartId } : {};
-                    const { data } = await api.post('/auth/login', { email, password }, { headers });
-                    localStorage.setItem('access_token', data.access_token);
-                    set({ user: data.user, token: data.access_token });
-                } catch (error) {
-                    throw error;
+                    const headers: Record<string, string> = {};
+                    if (anonCartId) headers['x-cart-id'] = anonCartId;
+                    const { data } = await api.post('/auth/login', { email, password, rememberMe }, { headers });
+                    set({ user: data.user });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -41,20 +37,19 @@ export const useAuthStore = create<AuthState>()(
                     set({ isLoading: false });
                 }
             },
-            logout: () => {
-                localStorage.removeItem('access_token');
-                set({ user: null, token: null });
+            logout: async () => {
+                try {
+                    await api.post('/auth/logout', {});
+                } catch { }
+                set({ user: null });
             },
             loadUser: async () => {
-                const token = localStorage.getItem('access_token');
-                if (!token) return;
                 set({ isLoading: true });
                 try {
                     const { data } = await api.get('/auth/me');
-                    set({ user: data, token });
+                    set({ user: data });
                 } catch {
-                    set({ user: null, token: null });
-                    localStorage.removeItem('access_token');
+                    set({ user: null });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -64,6 +59,9 @@ export const useAuthStore = create<AuthState>()(
                 set({ user: updatedUser });
             },
         }),
-        { name: 'auth-storage' }
+        {
+            name: 'auth-storage',
+            partialize: (state) => ({ user: state.user }),
+        }
     )
 );
