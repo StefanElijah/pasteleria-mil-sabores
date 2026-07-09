@@ -85,6 +85,7 @@ model Usuario {
   pedidos       Pedido[]
   direcciones   Direccion[]
   descuentosUsos DescuentoUso[]
+  borradores    PedidoBorrador[]
 
   @@index([email])
   @@index([rol])
@@ -343,4 +344,23 @@ model Envio {
   @@index([numeroTracking])
   @@index([fechaEstimadaEntrega])
   @@map("envios")
+}
+
+model PedidoBorrador {
+  id        String   @id @default(cuid())
+  usuarioId String?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+  cartId    String?
+
+  recipient      Json?
+  address        Json?
+  shippingMethod String?
+  paymentMethod  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([usuarioId])
+  @@index([updatedAt])
+  @@map("pedidos_borrador")
 }

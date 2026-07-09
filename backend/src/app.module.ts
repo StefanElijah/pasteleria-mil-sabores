@@ -12,6 +12,7 @@ import { AddressesModule } from '@modules/sales/addresses/addresses.module';
 import { OrdersModule } from '@modules/sales/orders/orders.module';
 import { ShippingModule } from '@modules/sales/shipping/shipping.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { CheckoutModule } from '@modules/sales/checkout/checkout.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     AddressesModule,
     OrdersModule,
     ShippingModule,
-    CloudinaryModule
+    CloudinaryModule,
+    CheckoutModule
   ],
 })
 export class AppModule { }
