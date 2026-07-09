@@ -3,10 +3,28 @@ import { useCartStore } from '@/store/cartStore';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Trash2, Minus, Plus } from 'lucide-react';
+import { Trash2, Minus, Plus, Tag, X } from 'lucide-react';
+import { useState } from 'react';
 
 export default function CartPage() {
-    const { items, total, updateQuantity, removeItem, clearCart } = useCartStore();
+    const { items, total, subtotal, discount, updateQuantity, removeItem, clearCart, applyDiscount, removeDiscount } = useCartStore();
+    const [couponCode, setCouponCode] = useState('');
+    const [couponError, setCouponError] = useState('');
+    const [applying, setApplying] = useState(false);
+
+    const handleApplyDiscount = async () => {
+        if (!couponCode.trim()) return;
+        setCouponError('');
+        setApplying(true);
+        try {
+            await applyDiscount(couponCode.trim().toUpperCase());
+            setCouponCode('');
+        } catch (err: any) {
+            setCouponError(err.response?.data?.message || 'Cupón no válido');
+        } finally {
+            setApplying(false);
+        }
+    };
 
     if (items.length === 0) {
         return (
@@ -48,8 +66,59 @@ export default function CartPage() {
                     </div>
                 ))}
             </div>
-            <div className="mt-6 border-t pt-4">
-                <div className="flex justify-between text-xl font-bold">
+
+            <div className="mt-4 max-w-md">
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
+                            placeholder="Código de cupón"
+                            disabled={!!discount}
+                            className="w-full border rounded-md px-3 py-2 text-sm pr-8"
+                        />
+                        {couponCode && (
+                            <button
+                                onClick={() => setCouponCode('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+                    {discount ? (
+                        <Button variant="outline" onClick={removeDiscount} className="text-red-500">
+                            Quitar
+                        </Button>
+                    ) : (
+                        <Button variant="outline" onClick={handleApplyDiscount} disabled={applying || !couponCode.trim()}>
+                            {applying ? '...' : 'Aplicar'}
+                        </Button>
+                    )}
+                </div>
+                {couponError && <p className="text-red-500 text-xs mt-1">{couponError}</p>}
+                {discount && (
+                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm text-green-700 mt-2">
+                        <Tag className="w-4 h-4" />
+                        <span className="font-medium">{discount.codigo}</span>
+                        <span>- {discount.tipo === 'PORCENTAJE' ? `${discount.valor}%` : `$${discount.valor.toLocaleString()}`}</span>
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-6 border-t pt-4 max-w-md">
+                <div className="flex justify-between text-gray-600">
+                    <span>Subtotal:</span>
+                    <span>${(subtotal || total).toLocaleString()}</span>
+                </div>
+                {discount && (
+                    <div className="flex justify-between text-green-600">
+                        <span>Descuento:</span>
+                        <span>-${discount.amount.toLocaleString()}</span>
+                    </div>
+                )}
+                <div className="flex justify-between text-xl font-bold mt-2">
                     <span>Total:</span>
                     <span>${total.toLocaleString()}</span>
                 </div>

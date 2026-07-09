@@ -7,6 +7,7 @@ import { Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormButtons } from '@/components/ui/form-buttons';
 import { useSlug } from '@/hooks/useSlug';
 
 const categorySchema = z.object({
@@ -25,9 +26,10 @@ interface CategoryFormProps {
     initialData?: Partial<CategoryFormValues>;
     onSubmit: (data: CategoryFormValues) => Promise<void>;
     isLoading: boolean;
+    onCancel?: () => void;
 }
 
-export function CategoryForm({ initialData, onSubmit, isLoading }: CategoryFormProps) {
+export function CategoryForm({ initialData, onSubmit, isLoading, onCancel }: CategoryFormProps) {
     const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CategoryFormValues>({
         resolver: zodResolver(categorySchema),
         defaultValues: initialData || { activo: true },
@@ -72,7 +74,7 @@ export function CategoryForm({ initialData, onSubmit, isLoading }: CategoryFormP
                 />
                 <label>Activo</label>
             </div>
-            <Button type="submit" disabled={isLoading}>{isLoading ? 'Guardando...' : 'Guardar'}</Button>
+            <FormButtons isLoading={isLoading} onCancel={onCancel} />
         </form>
     );
 }

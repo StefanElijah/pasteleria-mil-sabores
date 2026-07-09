@@ -21,17 +21,22 @@ export default function AdminCategoriesPage() {
     }, []);
 
     const toggleActive = async (id: string, currentActive: boolean) => {
-        await api.patch(`/categories/${id}`, { activo: !currentActive });
-        fetchCategories();
+        try {
+            await api.patch(`/categories/${id}`, { activo: !currentActive });
+            fetchCategories();
+        } catch {
+            alert('Error al cambiar el estado de la categoría');
+        }
     };
 
     const deleteCategory = async (id: string) => {
-        if (confirm('¿Desactivar esta categoría? (solo si no tiene productos)')) {
+        if (confirm('¿Desactivar esta categoría?')) {
             try {
                 await api.delete(`/categories/${id}`);
                 fetchCategories();
-            } catch (err) {
-                alert('No se puede desactivar una categoría con productos asociados');
+            } catch (err: any) {
+                const msg = err?.response?.data?.message || 'Error al desactivar la categoría';
+                alert(msg);
             }
         }
     };
@@ -52,6 +57,7 @@ export default function AdminCategoriesPage() {
                         <tr>
                             <th className="p-3">Nombre</th>
                             <th className="p-3">Slug</th>
+                            <th className="p-3">Productos</th>
                             <th className="p-3">Activo</th>
                             <th className="p-3">Acciones</th>
                         </tr>
@@ -61,11 +67,15 @@ export default function AdminCategoriesPage() {
                             <tr key={cat.id} className="border-b">
                                 <td className="p-3">{cat.nombre}</td>
                                 <td className="p-3">{cat.slug}</td>
+                                <td className="p-3">{cat._count?.productos ?? 0}</td>
                                 <td className="p-3">
                                     <Switch checked={cat.activo} onCheckedChange={() => toggleActive(cat.id, cat.activo)} />
                                 </td>
                                 <td className="p-3 space-x-2">
-                                    <Link href={`/admin/categories/${cat.id}/edit`}>
+                                    <Link href={`/admin/categories/${cat.id}`}>
+                                        <Button variant="outline" size="sm">Ver</Button>
+                                    </Link>
+                                    <Link href={`/admin/categories/${cat.id}?edit=true`}>
                                         <Button variant="outline" size="sm">Editar</Button>
                                     </Link>
                                     <Button variant="destructive" size="sm" onClick={() => deleteCategory(cat.id)}>

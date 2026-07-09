@@ -28,9 +28,12 @@ export class CategoriesService {
         return this.prisma.categoria.findMany({
             where,
             orderBy: { nombre: 'asc' },
-            ...(includeProducts
-                ? { include: { productos: { select: { id: true, nombre: true } } } }
-                : {}),
+            include: {
+                _count: { select: { productos: true } },
+                ...(includeProducts
+                    ? { productos: { select: { id: true, nombre: true } } }
+                    : {}),
+            },
         });
     }
 
@@ -80,7 +83,7 @@ export class CategoriesService {
         // Soft delete: solo si no tiene productos asociados
         const category = await this.prisma.categoria.findUnique({
             where: { id },
-            include: { productos: { take: 1 } },
+            include: { productos: { where: { activo: true }, take: 1 } },
         });
         if (!category) throw new NotFoundException('Categoría no encontrada');
         if (category.productos.length > 0) {

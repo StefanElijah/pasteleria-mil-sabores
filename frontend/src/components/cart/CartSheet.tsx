@@ -1,13 +1,37 @@
 'use client';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Trash2, Minus, Plus } from 'lucide-react';
+import { ShoppingCart, Trash2, Minus, Plus, Tag, X } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function CartSheet() {
-    const { items, total, updateQuantity, removeItem } = useCartStore();
+    const { items, total, subtotal, discount, updateQuantity, removeItem, applyDiscount, removeDiscount } = useCartStore();
+    const [couponCode, setCouponCode] = useState('');
+    const [couponError, setCouponError] = useState('');
+    const [applying, setApplying] = useState(false);
+
+    const handleApplyDiscount = async () => {
+        if (!couponCode.trim()) return;
+        setCouponError('');
+        setApplying(true);
+        try {
+            await applyDiscount(couponCode.trim().toUpperCase());
+            setCouponCode('');
+        } catch (err: any) {
+            setCouponError(err.response?.data?.message || 'Cupón no válido');
+        } finally {
+            setApplying(false);
+        }
+    };
+
+    const handleRemoveDiscount = async () => {
+        try {
+            await removeDiscount();
+        } catch { }
+    };
 
     return (
         <Sheet>
@@ -23,7 +47,10 @@ export default function CartSheet() {
             </SheetTrigger>
             <SheetContent className="w-full sm:max-w-md overflow-y-auto">
                 <SheetHeader>
-                    <SheetTitle>Mi Carrito</SheetTitle>
+                    <SheetTitle className="flex items-center gap-2">
+                        <ShoppingCart className="w-5 h-5" />
+                        Mi Carrito
+                    </SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                     {items.length === 0 ? (
@@ -54,14 +81,70 @@ export default function CartSheet() {
                                     <p className="font-semibold">${(item.price * item.quantity).toLocaleString()}</p>
                                 </div>
                             ))}
-                            <div className="border-t pt-4 mt-4">
-                                <div className="flex justify-between font-bold text-lg">
+
+                            <div className="border-t pt-3">
+                                <div className="flex gap-2 mb-2">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="text"
+                                            value={couponCode}
+                                            onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
+                                            placeholder="Código de cupón"
+                                            disabled={!!discount}
+                                            className="w-full border rounded-md px-3 py-2 text-sm pr-8"
+                                        />
+                                        {couponCode && (
+                                            <button
+                                                onClick={() => setCouponCode('')}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                    {discount ? (
+                                        <Button variant="outline" size="sm" onClick={handleRemoveDiscount} className="text-red-500">
+                                            Quitar
+                                        </Button>
+                                    ) : (
+                                        <Button variant="outline" size="sm" onClick={handleApplyDiscount} disabled={applying || !couponCode.trim()}>
+                                            {applying ? '...' : 'Aplicar'}
+                                        </Button>
+                                    )}
+                                </div>
+                                {couponError && <p className="text-red-500 text-xs mb-2">{couponError}</p>}
+                                {discount && (
+                                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm text-green-700 mb-2">
+                                        <Tag className="w-4 h-4" />
+                                        <span className="font-medium">{discount.codigo}</span>
+                                        <span>- {discount.tipo === 'PORCENTAJE' ? `${discount.valor}%` : `$${discount.valor.toLocaleString()}`}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="border-t pt-4 mt-2">
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Subtotal:</span>
+                                    <span>${(subtotal || total).toLocaleString()}</span>
+                                </div>
+                                {discount && (
+                                    <div className="flex justify-between text-sm text-green-600">
+                                        <span>Descuento:</span>
+                                        <span>-${discount.amount.toLocaleString()}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between font-bold text-lg mt-2">
                                     <span>Total:</span>
                                     <span>${total.toLocaleString()}</span>
                                 </div>
-                                <Link href="/checkout">
-                                    <Button className="w-full mt-4">Finalizar compra</Button>
-                                </Link>
+                                <div className="space-y-2 mt-4">
+                                    <Link href="/checkout">
+                                        <Button className="w-full">Proceder al Pago</Button>
+                                    </Link>
+                                    <SheetClose asChild>
+                                        <Button variant="outline" className="w-full">Continuar Comprando</Button>
+                                    </SheetClose>
+                                </div>
                             </div>
                         </>
                     )}

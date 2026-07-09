@@ -155,6 +155,21 @@ async function main() {
         },
     });
 
+    // 7. Cupón de prueba
+    await prisma.descuento.upsert({
+        where: { codigo: 'CANJE10' },
+        update: {},
+        create: {
+            nombre: '10% de descuento por canje',
+            codigo: 'CANJE10',
+            tipo: 'PORCENTAJE',
+            valor: 10,
+            objetivo: 'TODO',
+            activo: true,
+            limiteUsoPorUsuario: 1,
+        },
+    });
+
     console.log('✅ Seed completado exitosamente.');
     console.log(`👤 Usuario admin creado: ${admin.email} / contraseña: admin123`);
 }

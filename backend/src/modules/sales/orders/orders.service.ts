@@ -138,16 +138,18 @@ export class OrdersService {
 
         // 5. Aplicar descuento
         let discountAmount = 0;
+        let descuentoValidoId: string | null = null;
         if (descuentoId) {
             const descuento = await this.prisma.descuento.findUnique({
                 where: { id: descuentoId, activo: true },
             });
-            if (descuento && descuento.fechaFin >= new Date()) {
+            if (descuento && (!descuento.fechaFin || descuento.fechaFin >= new Date())) {
                 if (descuento.tipo === 'PORCENTAJE') {
-                    discountAmount = (subtotal * descuento.valor) / 100;
+                    discountAmount = Math.round((subtotal * descuento.valor) / 100);
                 } else if (descuento.tipo === 'MONTO_FIJO') {
-                    discountAmount = descuento.valor;
+                    discountAmount = Math.min(descuento.valor, subtotal);
                 }
+                descuentoValidoId = descuentoId;
                 await this.prisma.descuento.update({
                     where: { id: descuentoId },
                     data: { contadorUso: { increment: 1 } },
@@ -171,7 +173,7 @@ export class OrdersService {
                     notas,
                     usuarioId: userId,
                     direccionId: direccionFinal.id,
-                    descuentoId: discountAmount > 0 ? descuentoId : null,
+                    descuentoId: descuentoValidoId,
                     primerNombreDestinatario,
                     primerApellidoDestinatario,
                     emailDestinatario,
@@ -197,6 +199,17 @@ export class OrdersService {
                 await tx.producto.update({
                     where: { id: item.productId },
                     data: { stock: { decrement: item.quantity } },
+                });
+            }
+
+            // Registrar uso de descuento
+            if (descuentoValidoId && userId) {
+                await tx.descuentoUso.create({
+                    data: {
+                        descuentoId: descuentoValidoId,
+                        usuarioId: userId,
+                        pedidoId: newOrder.id,
+                    },
                 });
             }
 

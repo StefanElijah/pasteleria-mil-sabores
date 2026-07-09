@@ -31,11 +31,23 @@ export default function AdminProductsPage() {
         setUpdatingId(id);
         try {
             await api.patch(`/products/${id}`, { activo: !currentActive });
-            await fetchProducts(); // recargar la lista
+            await fetchProducts();
         } catch (error) {
             alert('Error al cambiar el estado del producto');
         } finally {
             setUpdatingId(null);
+        }
+    };
+
+    const deactivateProduct = async (id: string) => {
+        if (confirm('¿Desactivar este producto?')) {
+            try {
+                await api.delete(`/products/${id}`);
+                fetchProducts();
+            } catch (err: any) {
+                const msg = err?.response?.data?.message || 'Error al desactivar el producto';
+                alert(msg);
+            }
         }
     };
 
@@ -69,8 +81,7 @@ export default function AdminProductsPage() {
                         {products.map((product) => (
                             <tr
                                 key={product.id}
-                                className={`hover:bg-gray-50 transition-colors ${!product.activo ? 'bg-gray-50 opacity-75' : ''
-                                    }`}
+                                className={`hover:bg-gray-50 transition-colors ${!product.activo ? 'bg-gray-50 opacity-75' : ''}`}
                             >
                                 <td className="p-3 text-sm font-medium text-gray-900">{product.nombre}</td>
                                 <td className="p-3 text-sm text-gray-500">{product.slug}</td>
@@ -80,18 +91,22 @@ export default function AdminProductsPage() {
                                 <td className="p-3 text-sm text-gray-600">{product.stock}</td>
                                 <td className="p-3 text-sm text-gray-600">{product.categoria?.nombre || '—'}</td>
                                 <td className="p-3">
-                                        <Switch
-                                            checked={product.activo}
-                                            onCheckedChange={() => toggleActive(product.id, product.activo)}
-                                            disabled={updatingId === product.id}
-                                        />
+                                    <Switch
+                                        checked={product.activo}
+                                        onCheckedChange={() => toggleActive(product.id, product.activo)}
+                                        disabled={updatingId === product.id}
+                                    />
                                 </td>
-                                <td className="p-3">
-                                    <Link href={`/admin/products/${product.id}/edit`}>
-                                        <Button variant="outline" size="sm">
-                                            Editar
-                                        </Button>
+                                <td className="p-3 space-x-2">
+                                    <Link href={`/admin/products/${product.id}`}>
+                                        <Button variant="outline" size="sm">Ver</Button>
                                     </Link>
+                                    <Link href={`/admin/products/${product.id}?edit=true`}>
+                                        <Button variant="outline" size="sm">Editar</Button>
+                                    </Link>
+                                    <Button variant="destructive" size="sm" onClick={() => deactivateProduct(product.id)}>
+                                        Desactivar
+                                    </Button>
                                 </td>
                             </tr>
                         ))}

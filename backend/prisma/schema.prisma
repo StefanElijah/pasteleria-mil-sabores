@@ -84,6 +84,7 @@ model Usuario {
   perfilCliente PerfilCliente?
   pedidos       Pedido[]
   direcciones   Direccion[]
+  descuentosUsos DescuentoUso[]
 
   @@index([email])
   @@index([rol])
@@ -160,29 +161,46 @@ model Producto {
 }
 
 model Descuento {
-  id                String            @id @default(cuid())
-  nombre            String
-  codigo            String?           @unique
-  tipo              TipoDescuento
-  valor             Int
-  objetivo          ObjetivoDescuento @default(TODO)
-  fechaInicio       DateTime          @default(now())
-  fechaFin          DateTime?
-  activo            Boolean           @default(true)
-  valorMinimoPedido Int?
-  limiteUso         Int?
-  contadorUso       Int               @default(0)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                  String            @id @default(cuid())
+  nombre              String
+  codigo              String?           @unique
+  tipo                TipoDescuento
+  valor               Int
+  objetivo            ObjetivoDescuento @default(TODO)
+  fechaInicio         DateTime          @default(now())
+  fechaFin            DateTime?
+  activo              Boolean           @default(true)
+  valorMinimoPedido   Int?
+  limiteUso           Int?
+  limiteUsoPorUsuario Int?
+  contadorUso         Int               @default(0)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   productos  Producto[]
   categorias Categoria[]
   pedidos    Pedido[]
+  usos       DescuentoUso[]
 
   @@index([codigo])
   @@index([activo])
   @@index([fechaInicio, fechaFin])
   @@map("descuentos")
+}
+
+model DescuentoUso {
+  id          String    @id @default(cuid())
+  descuentoId String
+  descuento   Descuento @relation(fields: [descuentoId], references: [id])
+  usuarioId   String
+  usuario     Usuario   @relation(fields: [usuarioId], references: [id])
+  pedidoId    String?
+  pedido      Pedido?   @relation(fields: [pedidoId], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@unique([descuentoId, usuarioId, pedidoId])
+  @@index([descuentoId, usuarioId])
+  @@map("descuentos_usos")
 }
 
 // ==========================================
@@ -281,6 +299,7 @@ model Pedido {
 
   items ItemPedido[]
   envio Envio?
+  descuentosUsos DescuentoUso[]
 
   @@index([usuarioId])
   @@index([numeroPedido])

@@ -56,4 +56,21 @@ export class CartController {
         await this.cartService.clearCart(cartId);
         return { message: 'Carrito vaciado' };
     }
+
+    @Post('discount')
+    @UseGuards(OptionalJwtAuthGuard)
+    async applyDiscount(@Req() req: any, @Body('codigo') codigo: string) {
+        if (!codigo) throw new BadRequestException('El código de cupón es requerido');
+        const cartId = this.getCartId(req);
+        const cart = await this.cartService.applyDiscount(cartId, codigo, req.user?.userId);
+        return { cartId, ...cart };
+    }
+
+    @Delete('discount')
+    @UseGuards(OptionalJwtAuthGuard)
+    async removeDiscount(@Req() req: any) {
+        const cartId = this.getCartId(req);
+        const cart = await this.cartService.removeDiscount(cartId);
+        return { cartId, ...cart };
+    }
 }

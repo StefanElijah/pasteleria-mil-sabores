@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormButtons } from '@/components/ui/form-buttons';
 import { Category } from '@/types';
 import MainImageUpload from './MainImageUpload';
 import ImageGalleryUpload from './ImageGalleryUpload';
@@ -39,9 +40,10 @@ interface ProductFormProps {
     categories: Category[];
     onSubmit: (data: ProductFormValues) => Promise<void>;
     isLoading: boolean;
+    onCancel?: () => void;
 }
 
-export function ProductForm({ initialData, categories, onSubmit, isLoading }: ProductFormProps) {
+export function ProductForm({ initialData, categories, onSubmit, isLoading, onCancel }: ProductFormProps) {
     const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ProductFormValues>({
         resolver: zodResolver(productSchema),
         defaultValues: initialData || {
@@ -158,9 +160,7 @@ export function ProductForm({ initialData, categories, onSubmit, isLoading }: Pr
                 </div>
             </div>
 
-            <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Guardando...' : 'Guardar'}
-            </Button>
+            <FormButtons isLoading={isLoading} onCancel={onCancel} />
         </form>
     );
 }

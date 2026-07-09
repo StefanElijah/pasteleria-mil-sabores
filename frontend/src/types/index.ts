@@ -40,6 +40,7 @@ export interface Category {
     createdAt: string;
     updatedAt: string;
     productos?: Product[];
+    _count?: { productos: number };
 }
 
 export interface CartItem {

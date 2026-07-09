@@ -3,9 +3,20 @@ import { persist } from 'zustand/middleware';
 import api from '@/lib/axios';
 import { CartItem } from '@/types';
 
+interface AppliedDiscount {
+    id: string;
+    codigo: string;
+    nombre: string;
+    tipo: string;
+    valor: number;
+    amount: number;
+}
+
 interface CartState {
     items: CartItem[];
     total: number;
+    subtotal: number;
+    discount: AppliedDiscount | null;
     cartId: string | null;
     addItem: (productId: string, quantity: number) => Promise<void>;
     removeItem: (productId: string) => Promise<void>;
@@ -13,6 +24,8 @@ interface CartState {
     clearCart: () => Promise<void>;
     fetchCart: () => Promise<void>;
     setCartId: (id: string) => void;
+    applyDiscount: (codigo: string) => Promise<void>;
+    removeDiscount: () => Promise<void>;
 }
 
 export const useCartStore = create<CartState>()(
@@ -20,6 +33,8 @@ export const useCartStore = create<CartState>()(
         (set, get) => ({
             items: [],
             total: 0,
+            subtotal: 0,
+            discount: null,
             cartId: null,
             addItem: async (productId, quantity) => {
                 const cartId = get().cartId;
@@ -31,6 +46,8 @@ export const useCartStore = create<CartState>()(
                 set({
                     items: response.data.items,
                     total: response.data.total,
+                    subtotal: response.data.subtotal || response.data.total,
+                    discount: response.data.discount || null,
                     cartId: response.data.cartId,
                 });
             },
@@ -40,7 +57,12 @@ export const useCartStore = create<CartState>()(
                 const response = await api.delete(`/cart/remove/${productId}`, {
                     headers: { 'x-cart-id': cartId },
                 });
-                set({ items: response.data.items, total: response.data.total });
+                set({
+                    items: response.data.items,
+                    total: response.data.total,
+                    subtotal: response.data.subtotal || response.data.total,
+                    discount: response.data.discount || null,
+                });
             },
             updateQuantity: async (productId, quantity) => {
                 const cartId = get().cartId;
@@ -50,14 +72,19 @@ export const useCartStore = create<CartState>()(
                     { quantity },
                     { headers: { 'x-cart-id': cartId } }
                 );
-                set({ items: response.data.items, total: response.data.total });
+                set({
+                    items: response.data.items,
+                    total: response.data.total,
+                    subtotal: response.data.subtotal || response.data.total,
+                    discount: response.data.discount || null,
+                });
             },
             clearCart: async () => {
                 const cartId = get().cartId;
                 if (cartId) {
                     await api.delete('/cart/clear', { headers: { 'x-cart-id': cartId } });
                 }
-                set({ items: [], total: 0, cartId: null });
+                set({ items: [], total: 0, subtotal: 0, discount: null, cartId: null });
             },
             fetchCart: async () => {
                 const cartId = get().cartId;
@@ -67,10 +94,40 @@ export const useCartStore = create<CartState>()(
                 set({
                     items: response.data.items,
                     total: response.data.total,
+                    subtotal: response.data.subtotal || response.data.total,
+                    discount: response.data.discount || null,
                     cartId: response.data.cartId,
                 });
             },
             setCartId: (id) => set({ cartId: id }),
+            applyDiscount: async (codigo) => {
+                const cartId = get().cartId;
+                if (!cartId) throw new Error('No hay carrito activo');
+                const response = await api.post(
+                    '/cart/discount',
+                    { codigo },
+                    { headers: { 'x-cart-id': cartId } }
+                );
+                set({
+                    items: response.data.items,
+                    total: response.data.total,
+                    subtotal: response.data.subtotal,
+                    discount: response.data.discount,
+                });
+            },
+            removeDiscount: async () => {
+                const cartId = get().cartId;
+                if (!cartId) return;
+                const response = await api.delete('/cart/discount', {
+                    headers: { 'x-cart-id': cartId },
+                });
+                set({
+                    items: response.data.items,
+                    total: response.data.total,
+                    subtotal: response.data.subtotal || response.data.total,
+                    discount: null,
+                });
+            },
         }),
         { name: 'cart-storage' }
     )

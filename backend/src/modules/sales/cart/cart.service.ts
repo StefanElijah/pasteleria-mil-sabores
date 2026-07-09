@@ -75,6 +75,98 @@ export class CartService {
         await this.redis.del(this.getCartKey(cartId));
     }
 
+    async applyDiscount(cartId: string, codigo: string, userId?: string) {
+        const cart = await this.getCart(cartId);
+        if (!cart.items.length) throw new BadRequestException('El carrito está vacío');
+        if (cart.discount) throw new BadRequestException('Ya hay un descuento aplicado');
+
+        const descuento = await this.prisma.descuento.findUnique({
+            where: { codigo, activo: true },
+            include: { productos: true, categorias: true },
+        });
+        if (!descuento) throw new NotFoundException('Cupón no válido o expirado');
+        if (descuento.fechaFin && descuento.fechaFin < new Date()) throw new BadRequestException('El cupón ha expirado');
+        if (descuento.valorMinimoPedido && cart.total < descuento.valorMinimoPedido) {
+            throw new BadRequestException(`El pedido mínimo para este cupón es $${descuento.valorMinimoPedido.toLocaleString()}`);
+        }
+        if (descuento.limiteUso && descuento.contadorUso >= descuento.limiteUso) {
+            throw new BadRequestException('El cupón ha alcanzado su límite de uso');
+        }
+        if (descuento.limiteUsoPorUsuario && userId) {
+            const usosPorUsuario = await this.prisma.descuentoUso.count({
+                where: { descuentoId: descuento.id, usuarioId: userId },
+            });
+            if (usosPorUsuario >= descuento.limiteUsoPorUsuario) {
+                throw new BadRequestException('Ya has alcanzado el límite de usos de este cupón');
+            }
+        }
+
+        let applicableSubtotal = 0;
+        if (descuento.objetivo === 'TODO') {
+            applicableSubtotal = cart.total;
+        } else if (descuento.objetivo === 'PRODUCTOS_ESPECIFICOS') {
+            const productIds = new Set(descuento.productos.map(p => p.id));
+            applicableSubtotal = cart.items
+                .filter(item => productIds.has(item.productId))
+                .reduce((sum, item) => sum + item.price * item.quantity, 0);
+        } else if (descuento.objetivo === 'CATEGORIAS_ESPECIFICAS') {
+            const productIds = new Set(descuento.productos.map(p => p.id));
+            const categoriaIds = new Set(descuento.categorias.map(c => c.id));
+            const productsWithCategories = await this.prisma.producto.findMany({
+                where: {
+                    id: { in: cart.items.map(i => i.productId) },
+                },
+                select: { id: true, categoriaId: true },
+            });
+            const eligibleProductIds = new Set(
+                productsWithCategories
+                    .filter(p => categoriaIds.has(p.categoriaId) || productIds.has(p.id))
+                    .map(p => p.id)
+            );
+            applicableSubtotal = cart.items
+                .filter(item => eligibleProductIds.has(item.productId))
+                .reduce((sum, item) => sum + item.price * item.quantity, 0);
+        }
+
+        if (applicableSubtotal <= 0) throw new BadRequestException('Este cupón no aplica a los productos en tu carrito');
+
+        let discountAmount = 0;
+        if (descuento.tipo === 'PORCENTAJE') {
+            discountAmount = Math.round((applicableSubtotal * descuento.valor) / 100);
+        } else if (descuento.tipo === 'MONTO_FIJO') {
+            discountAmount = Math.min(descuento.valor, applicableSubtotal);
+        } else if (descuento.tipo === 'ENVIO_GRATIS') {
+            discountAmount = 0;
+        }
+
+        const subtotal = cart.total;
+        const total = subtotal - discountAmount;
+
+        cart.subtotal = subtotal;
+        cart.discount = {
+            id: descuento.id,
+            codigo: descuento.codigo,
+            nombre: descuento.nombre,
+            tipo: descuento.tipo,
+            valor: descuento.valor,
+            amount: discountAmount,
+        };
+        cart.total = total;
+
+        await this.redis.setex(this.getCartKey(cartId), this.CART_TTL, JSON.stringify(cart));
+        return cart;
+    }
+
+    async removeDiscount(cartId: string) {
+        const cart = await this.getCart(cartId);
+        if (!cart.discount) throw new BadRequestException('No hay descuento aplicado');
+        cart.total = cart.subtotal || cart.total;
+        delete cart.subtotal;
+        delete cart.discount;
+        await this.redis.setex(this.getCartKey(cartId), this.CART_TTL, JSON.stringify(cart));
+        return cart;
+    }
+
     async mergeCarts(anonCartId: string, userId: string) {
         const anonCart = await this.getCart(anonCartId);
         if (!anonCart.items.length) return;
