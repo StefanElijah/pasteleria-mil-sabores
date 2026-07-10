@@ -2,14 +2,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { useCartStore } from '@/store/cartStore';
 import Link from 'next/link';
 
 export default function LoginPage() {
     const router = useRouter();
     const login = useAuthStore((state) => state.login);
     const isLoading = useAuthStore((state) => state.isLoading);
-    const cartId = useCartStore((state) => state.cartId);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
@@ -17,7 +15,7 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await login(email, password, rememberMe, cartId || undefined);
+            await login(email, password, rememberMe);
             router.push('/');
         } catch (error) {
             alert('Credenciales incorrectas');

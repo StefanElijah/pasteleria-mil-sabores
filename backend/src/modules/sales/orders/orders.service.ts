@@ -1,7 +1,19 @@
-import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { EstadoPedido } from '@prisma/client';
 import { CartService } from '@modules/sales/cart/cart.service';
+
+const TRANSICIONES: Record<EstadoPedido, EstadoPedido[]> = {
+    PENDIENTE: ['PREPARANDO', 'CANCELADO'],
+    PREPARANDO: ['ENVIADO', 'CANCELADO'],
+    ENVIADO: ['EN_REPARTO', 'RETRASADO', 'INTENTO_FALLIDO'],
+    EN_REPARTO: ['ENTREGADO', 'INTENTO_FALLIDO', 'RETRASADO'],
+    RETRASADO: ['EN_REPARTO', 'INTENTO_FALLIDO', 'ENTREGADO'],
+    INTENTO_FALLIDO: ['EN_REPARTO', 'RETRASADO', 'DEVUELTO'],
+    DEVUELTO: [],
+    ENTREGADO: [],
+    CANCELADO: [],
+};
 
 @Injectable()
 export class OrdersService {
@@ -288,10 +300,52 @@ export class OrdersService {
 
     async updateStatus(id: string, estado: EstadoPedido, userId: string, rol?: string) {
         const order = await this.findOne(id, userId, rol);
+
+        // Defensa en profundidad: solo ADMIN o MODERADOR
+        if (rol !== 'ADMIN' && rol !== 'MODERADOR') {
+            throw new ForbiddenException('No tienes permisos para cambiar el estado del pedido');
+        }
+
+        // Validar transición permitida
+        const permitidas = TRANSICIONES[order.estado] || [];
+        if (!permitidas.includes(estado)) {
+            throw new BadRequestException(
+                `No se puede cambiar de ${order.estado} a ${estado}. Estados permitidos: ${permitidas.join(', ') || 'ninguno (estado final)'}`
+            );
+        }
+
         return this.prisma.pedido.update({
             where: { id },
             data: { estado },
             include: { envio: true },
         });
+    }
+
+    getStatusInfo() {
+        return {
+            labels: {
+                PENDIENTE: 'Pendiente',
+                PREPARANDO: 'Preparando',
+                ENVIADO: 'Enviado',
+                EN_REPARTO: 'En Reparto',
+                ENTREGADO: 'Entregado',
+                INTENTO_FALLIDO: 'Intento Fallido',
+                RETRASADO: 'Retrasado',
+                DEVUELTO: 'Devuelto',
+                CANCELADO: 'Cancelado',
+            },
+            colors: {
+                PENDIENTE: 'yellow',
+                PREPARANDO: 'blue',
+                ENVIADO: 'purple',
+                EN_REPARTO: 'indigo',
+                ENTREGADO: 'green',
+                INTENTO_FALLIDO: 'red',
+                RETRASADO: 'orange',
+                DEVUELTO: 'gray',
+                CANCELADO: 'red',
+            },
+            transitions: TRANSICIONES,
+        };
     }
 }

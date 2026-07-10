@@ -3,26 +3,22 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { Order } from '@/types';
 import { useRequireAuth } from '@/hooks/useAuth';
+import { useOrderStatus } from '@/hooks/useOrderStatus';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Package, ChevronRight } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 
-const ESTADO_LABELS: Record<string, string> = {
-    PENDIENTE: 'Pendiente',
-    PREPARANDO: 'Preparando',
-    ENVIADO: 'Enviado',
-    ENTREGADO: 'Entregado',
-    CANCELADO: 'Cancelado',
-};
-
-const ESTADO_COLORS: Record<string, string> = {
-    PENDIENTE: 'bg-yellow-100 text-yellow-800',
-    PREPARANDO: 'bg-blue-100 text-blue-800',
-    ENVIADO: 'bg-purple-100 text-purple-800',
-    ENTREGADO: 'bg-green-100 text-green-800',
-    CANCELADO: 'bg-red-100 text-red-800',
+const COLOR_CLASSES: Record<string, string> = {
+    yellow: 'bg-yellow-100 text-yellow-800',
+    blue: 'bg-blue-100 text-blue-800',
+    purple: 'bg-purple-100 text-purple-800',
+    indigo: 'bg-indigo-100 text-indigo-800',
+    green: 'bg-green-100 text-green-800',
+    red: 'bg-red-100 text-red-800',
+    orange: 'bg-orange-100 text-orange-800',
+    gray: 'bg-gray-100 text-gray-800',
 };
 
 export default function OrdersPage() {
@@ -36,6 +32,7 @@ export default function OrdersPage() {
 function OrdersContent() {
     const { user } = useRequireAuth();
     const fetchCart = useCartStore((s) => s.fetchCart);
+    const statusInfo = useOrderStatus();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -81,8 +78,10 @@ function OrdersContent() {
                             <div>
                                 <div className="flex items-center gap-3 mb-2">
                                     <span className="font-semibold">{order.numeroPedido}</span>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ESTADO_COLORS[order.estado] || 'bg-gray-100'}`}>
-                                        {ESTADO_LABELS[order.estado] || order.estado}
+                                    <span
+                                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${COLOR_CLASSES[statusInfo.colors[order.estado as keyof typeof statusInfo.colors] || 'gray'] || 'bg-gray-100'}`}
+                                    >
+                                        {statusInfo.labels[order.estado as keyof typeof statusInfo.labels] || order.estado}
                                     </span>
                                 </div>
                                 <p className="text-sm text-gray-500">

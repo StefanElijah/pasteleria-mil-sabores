@@ -12,7 +12,7 @@ import { deleteDraft } from '@/lib/checkout';
 
 export default function ReviewStep() {
     const { shippingInfo, paymentMethod, shippingMethod, setShippingCost, shippingCost, reset: resetCheckout } = useCheckoutStore();
-    const { items, total, subtotal, discount, clearCart, cartId } = useCartStore();
+    const { items, total, subtotal, discount, clearCart } = useCartStore();
     const { user } = useAuthStore();
     const router = useRouter();
 
@@ -65,8 +65,7 @@ export default function ReviewStep() {
                 telefonoDestinatario: shippingInfo.telefonoDestinatario,
             };
 
-            const headers = cartId ? { 'x-cart-id': cartId } : {};
-            const response = await api.post('/orders', orderData, { headers });
+            const response = await api.post('/orders', orderData);
             await clearCart();
             await deleteDraft().catch(() => { });
             resetCheckout();

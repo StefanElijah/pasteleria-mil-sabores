@@ -19,7 +19,7 @@ const STEPS = [
 
 export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
     const { user, isLoading } = useAuthStore();
-    const { items, total, subtotal, discount } = useCartStore();
+    const { items, total, subtotal, discount, isHydrated } = useCartStore();
     const { shippingCost, shippingInfo } = useCheckoutStore();
     const pathname = usePathname();
     const router = useRouter();
@@ -27,6 +27,7 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
     useCheckoutDraft();
 
     useEffect(() => {
+        if (!isHydrated) return;
         if (items.length === 0 && pathname !== '/checkout') {
             router.replace('/checkout');
             return;
@@ -36,7 +37,7 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
                 router.replace('/checkout/shipping');
             }
         }
-    }, [pathname, items.length, shippingInfo, router]);
+    }, [pathname, items.length, shippingInfo, isHydrated, router]);
 
     const currentStepIndex = STEPS.findIndex((s) => pathname === s.path || pathname.startsWith(s.path + '?'));
     const activeStep = currentStepIndex >= 0 ? currentStepIndex : 0;
@@ -46,7 +47,7 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
     const displayShipping = shippingCost || 0;
     const displayTotal = total + displayShipping;
 
-    if (isLoading) {
+    if (isLoading || !isHydrated) {
         return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
     }
 

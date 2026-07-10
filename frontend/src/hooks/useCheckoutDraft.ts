@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useCheckoutStore } from '@/store/checkoutStore';
+import { useCartStore } from '@/store/cartStore';
 import { getDraft, updateDraft } from '@/lib/checkout';
 
 export function useCheckoutDraft() {
@@ -20,6 +21,8 @@ export function useCheckoutDraft() {
     // Hidratar desde backend al montar
     useEffect(() => {
         if (!user || hydratedRef.current) return;
+        const items = useCartStore.getState().items;
+        if (items.length === 0) return; // No hay items, no cargar draft
         hydratedRef.current = true;
 
         getDraft()

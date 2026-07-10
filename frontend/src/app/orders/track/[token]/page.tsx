@@ -3,26 +3,13 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import api from '@/lib/axios';
 import { Order } from '@/types';
-import { Loader2, Package, MapPin, CreditCard, Truck, CheckCircle } from 'lucide-react';
-
-const ESTADO_LABELS: Record<string, string> = {
-    PENDIENTE: 'Pendiente',
-    PREPARANDO: 'Preparando',
-    ENVIADO: 'Enviado',
-    ENTREGADO: 'Entregado',
-    CANCELADO: 'Cancelado',
-};
-
-const ESTADO_COLORS: Record<string, string> = {
-    PENDIENTE: 'bg-yellow-100 text-yellow-800',
-    PREPARANDO: 'bg-blue-100 text-blue-800',
-    ENVIADO: 'bg-purple-100 text-purple-800',
-    ENTREGADO: 'bg-green-100 text-green-800',
-    CANCELADO: 'bg-red-100 text-red-800',
-};
+import { useOrderStatus } from '@/hooks/useOrderStatus';
+import { OrderStatusBadge } from '@/components/admin/OrderStatusBadge';
+import { Loader2, Package } from 'lucide-react';
 
 export default function TrackOrderPage() {
     const { token } = useParams();
+    const statusInfo = useOrderStatus();
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -63,12 +50,11 @@ export default function TrackOrderPage() {
     return (
         <div className="max-w-3xl mx-auto">
             <div className="mb-6 flex items-center gap-3">
-                <CheckCircle className="w-8 h-8 text-green-600" />
                 <div>
                     <h1 className="text-2xl font-bold">Pedido {order.numeroPedido}</h1>
-                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium mt-1 ${ESTADO_COLORS[order.estado] || 'bg-gray-100'}`}>
-                        {ESTADO_LABELS[order.estado] || order.estado}
-                    </span>
+                    <div className="mt-1">
+                        <OrderStatusBadge status={order.estado} statusInfo={statusInfo} />
+                    </div>
                 </div>
             </div>
 

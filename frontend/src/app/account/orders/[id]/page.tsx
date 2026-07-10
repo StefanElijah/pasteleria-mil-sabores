@@ -4,6 +4,8 @@ import { useParams } from 'next/navigation';
 import api from '@/lib/axios';
 import { Order } from '@/types';
 import { useRequireAuth } from '@/hooks/useAuth';
+import { useOrderStatus } from '@/hooks/useOrderStatus';
+import { OrderStatusBadge } from '@/components/admin/OrderStatusBadge';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 export default function OrderDetailPage() {
@@ -17,6 +19,7 @@ export default function OrderDetailPage() {
 function OrderDetailContent() {
     const { id } = useParams();
     const { user } = useRequireAuth();
+    const statusInfo = useOrderStatus();
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -36,7 +39,7 @@ function OrderDetailContent() {
             <h1 className="text-2xl font-bold mb-4">Pedido #{order.numeroPedido}</h1>
             <div className="border rounded p-4 space-y-4">
                 <div>
-                    <strong>Estado:</strong> {order.estado}
+                    <strong>Estado:</strong> <OrderStatusBadge status={order.estado} statusInfo={statusInfo} />
                 </div>
                 <div>
                     <strong>Fecha:</strong> {new Date(order.createdAt).toLocaleDateString()}

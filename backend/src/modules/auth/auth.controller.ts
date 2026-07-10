@@ -53,10 +53,15 @@ export class AuthController {
     async login(
         @Body() loginDto: LoginDto,
         @Headers('x-cart-id') anonCartId: string | undefined,
+        @Req() req: any,
         @Res({ passthrough: true }) res: Response,
     ) {
-        const result = await this.authService.login(loginDto, anonCartId);
+        const cartIdFromCookie = req.cookies?.cartId;
+        const finalAnonCartId = anonCartId || (cartIdFromCookie?.startsWith('anon_') ? cartIdFromCookie : undefined);
+        const result = await this.authService.login(loginDto, finalAnonCartId);
         this.setTokenCookies(res, result.access_token, result.refresh_token, !!loginDto.rememberMe);
+        // Limpiar cookie de carrito anon (ya se mergeó al user)
+        res.clearCookie('cartId', { path: '/' });
         return { user: result.user };
     }
 
@@ -64,6 +69,7 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     async logout(@Res({ passthrough: true }) res: Response) {
         this.clearTokenCookies(res);
+        res.clearCookie('cartId', { path: '/' });
         return { message: 'Sesión cerrada' };
     }
 

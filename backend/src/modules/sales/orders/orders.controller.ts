@@ -35,6 +35,11 @@ export class OrdersController {
         return this.ordersService.calculateShipping(comunaId, metodo);
     }
 
+    @Get('status-info')
+    async getStatusInfo() {
+        return this.ordersService.getStatusInfo();
+    }
+
     @Get()
     @UseGuards(JwtAuthGuard)
     async findAll(@Req() req: any) {
@@ -49,7 +54,7 @@ export class OrdersController {
 
     @Patch(':id/status')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
+    @Roles('ADMIN', 'MODERADOR')
     async updateStatus(@Param('id') id: string, @Body('estado') estado: string, @Req() req: any) {
         return this.ordersService.updateStatus(id, estado as any, req.user.userId, req.user.rol);
     }
