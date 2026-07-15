@@ -2,6 +2,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { PasswordInput } from '@/components/ui/PasswordInput';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -23,47 +28,76 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-[70vh]">
-            <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6 text-center">Iniciar sesión</h1>
-                <form onSubmit={handleSubmit}>
-                    <input
-                        type="email"
-                        placeholder="Email"
-                        className="w-full p-2 border rounded mb-4"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                    <input
-                        type="password"
-                        placeholder="Contraseña"
-                        className="w-full p-2 border rounded mb-4"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                    <label className="flex items-center mb-4 text-sm text-gray-600">
-                        <input
-                            type="checkbox"
-                            className="mr-2"
-                            checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
-                        />
-                        Mantener sesión iniciada
-                    </label>
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-rose-600 text-white py-2 rounded hover:bg-rose-700"
-                    >
-                        {isLoading ? 'Cargando...' : 'Ingresar'}
-                    </button>
-                </form>
-                <p className="text-center mt-4">
-                    ¿No tienes cuenta? <Link href="/auth/register" className="text-rose-600">Regístrate</Link>
-                </p>
-            </div>
+        <div className="flex items-center justify-center py-8 sm:py-12">
+            <Card className="w-full max-w-md mx-4 sm:mx-auto">
+                <CardHeader>
+                    <CardTitle className="text-xl sm:text-2xl text-center font-bold">
+                        Iniciar sesión
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label htmlFor="email" className="block text-sm font-medium">
+                                Email
+                            </label>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="tu@correo.cl"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                autoComplete="email"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label htmlFor="password" className="block text-sm font-medium">
+                                Contraseña
+                            </label>
+                            <PasswordInput
+                                id="password"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                autoComplete="current-password"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="remember"
+                                checked={rememberMe}
+                                onCheckedChange={(checked) => setRememberMe(checked === true)}
+                            />
+                            <label
+                                htmlFor="remember"
+                                className="text-sm text-muted-foreground cursor-pointer select-none"
+                            >
+                                Mantener sesión iniciada
+                            </label>
+                        </div>
+
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-rose-600 hover:bg-rose-700 text-white"
+                        >
+                            {isLoading ? 'Cargando...' : 'Ingresar'}
+                        </Button>
+                    </form>
+                </CardContent>
+                <CardFooter className="justify-center border-t-0 pt-0">
+                    <p className="text-sm text-muted-foreground">
+                        ¿No tienes cuenta?{' '}
+                        <Link href="/auth/register" className="text-rose-600 hover:underline font-medium">
+                            Regístrate
+                        </Link>
+                    </p>
+                </CardFooter>
+            </Card>
         </div>
     );
 }
