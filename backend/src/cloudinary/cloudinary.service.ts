@@ -15,7 +15,7 @@ export class CloudinaryService {
         return new Promise((resolve, reject) => {
             const upload = cloudinary.uploader.upload_stream(
                 {
-                    folder: 'pasteleria-productos',
+                    folder: process.env.CLOUDINARY_FOLDER || 'pasteleria-mil-sabores/productos',
                     transformation: [{ width: 800, height: 800, crop: 'limit' }],
                 },
                 (error, result) => {
