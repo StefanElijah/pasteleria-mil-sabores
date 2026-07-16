@@ -23,8 +23,14 @@ export class ProductsService {
         });
     }
 
-    async findAll(onlyActive: boolean = true) {
-        const where = onlyActive ? { activo: true } : {};
+    async findAll(onlyActive: boolean = true, search?: string) {
+        const where: any = onlyActive ? { activo: true } : {};
+        if (search) {
+            where.OR = [
+                { nombre: { contains: search, mode: 'insensitive' } },
+                { descripcion: { contains: search, mode: 'insensitive' } },
+            ];
+        }
         return this.prisma.producto.findMany({
             where,
             include: { categoria: true },
@@ -46,7 +52,8 @@ export class ProductsService {
     async findFeatured() {
         return this.prisma.producto.findMany({
             where: { destacado: true, activo: true },
-            take: 4,
+            take: 20,
+            include: { categoria: true },
             orderBy: { createdAt: 'desc' }
         });
     }

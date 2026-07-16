@@ -54,7 +54,14 @@ export default function CartSheet() {
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                     {items.length === 0 ? (
-                        <p className="text-center text-gray-500">No hay productos en el carrito</p>
+                        <div className="text-center space-y-4">
+                            <p className="text-gray-500">No hay productos en el carrito</p>
+                            <SheetClose asChild>
+                                <Link href="/">
+                                    <Button variant="outline">Ir a comprar</Button>
+                                </Link>
+                            </SheetClose>
+                        </div>
                     ) : (
                         <>
                             {items.map((item) => (
@@ -138,9 +145,11 @@ export default function CartSheet() {
                                     <span>${total.toLocaleString()}</span>
                                 </div>
                                 <div className="space-y-2 mt-4">
-                                    <Link href="/checkout">
-                                        <Button className="w-full">Proceder al Pago</Button>
-                                    </Link>
+                                    <SheetClose asChild>
+                                        <Link href="/checkout">
+                                            <Button className="w-full">Proceder al Pago</Button>
+                                        </Link>
+                                    </SheetClose>
                                     <SheetClose asChild>
                                         <Button variant="outline" className="w-full">Continuar Comprando</Button>
                                     </SheetClose>

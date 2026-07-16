@@ -5,6 +5,7 @@ import Link from 'next/link';
 import api from '@/lib/axios';
 import { Product } from '@/types';
 import ProductCard from '@/components/products/ProductCard';
+import HeroSlider from '@/components/ui/hero-slider';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
@@ -29,22 +30,9 @@ export default function HomePage() {
 
   return (
     <main>
-      {/* Hero Section */}
-      <section className="bg-rose-50 py-16 md:py-24">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Endulzando tus <span className="text-rose-600">mejores momentos</span>
-          </h1>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Descubre nuestra selección de tortas, postres y dulces artesanales elaborados con los mejores ingredientes y mucho amor.
-          </p>
-          <Link href="/products">
-            <Button size="lg" className="bg-rose-600 hover:bg-rose-700 text-white rounded-full px-8">
-              Ver catálogo completo <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+      <div className="relative -mt-8 -ml-[calc(50vw-50%)] -mr-[calc(50vw-50%)] overflow-hidden">
+        <HeroSlider />
+      </div>
 
       {/* Productos Destacados Section */}
       <section className="container mx-auto px-4 py-16">

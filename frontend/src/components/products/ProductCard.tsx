@@ -29,6 +29,18 @@ export default function ProductCard({ product }: { product: Product }) {
 
     return (
         <div className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition relative">
+            <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                {product.destacado && (
+                    <span className="bg-rose-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        Destacado
+                    </span>
+                )}
+                {product.novedad && (
+                    <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        Novedad
+                    </span>
+                )}
+            </div>
             {isOutOfStock && (
                 <div className="absolute top-2 right-2 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                     Sin stock

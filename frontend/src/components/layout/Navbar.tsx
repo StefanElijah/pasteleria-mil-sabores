@@ -37,9 +37,7 @@ export default function Navbar() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const { data } = await api.get('/categories?activo=true', {
-                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
-                });
+                const { data } = await api.get('/categories?activo=true');
                 setCategories(data);
             } catch (error) {
                 console.error('Error cargando categorías:', error);
@@ -92,7 +90,7 @@ export default function Navbar() {
     ];
 
     return (
-        <nav className="bg-white shadow-md sticky top-0 z-50">
+        <nav className="bg-white sticky top-0 z-50">
             <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
