@@ -29,6 +29,7 @@ export class ProductsService {
             where.OR = [
                 { nombre: { contains: search, mode: 'insensitive' } },
                 { descripcion: { contains: search, mode: 'insensitive' } },
+                { categoria: { nombre: { contains: search, mode: 'insensitive' } } },
             ];
         }
         return this.prisma.producto.findMany({

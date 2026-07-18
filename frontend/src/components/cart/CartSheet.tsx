@@ -34,7 +34,7 @@ export default function CartSheet() {
     };
 
     return (
-        <Sheet>
+        <Sheet modal={false}>
             <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                     <ShoppingCart className="w-5 h-5" />

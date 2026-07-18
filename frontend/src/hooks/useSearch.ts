@@ -13,7 +13,7 @@ export function useSearch() {
                 setIsSearching(true);
                 try {
                     const { data } = await api.get('/products?search=' + encodeURIComponent(searchTerm));
-                    setSuggestions(data.slice(0, 5)); // mostrar máx 5 sugerencias
+                    setSuggestions(data.slice(0, 8)); // mostrar máx 8 sugerencias
                 } catch (error) {
                     console.error(error);
                     setSuggestions([]);

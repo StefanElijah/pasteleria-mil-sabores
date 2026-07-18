@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, Search, User, LogOut, ShieldCheck, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -112,7 +113,7 @@ export default function Navbar() {
                         ))}
 
                         {/* Dropdown Categorías dinámico */}
-                        <DropdownMenu>
+                        <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="hover:text-rose-600 flex items-center gap-1">
                                     Categorías <ChevronDown className="w-4 h-4" />
@@ -152,7 +153,7 @@ export default function Navbar() {
                                         if (e.target.value.length > 1) setShowSuggestions(true);
                                         else setShowSuggestions(false);
                                     }}
-                                    className="w-64 rounded-r-none"
+                                    className="w-72 md:w-80 lg:w-96 rounded-r-none"
                                 />
                                 <Button type="submit" variant="default" className="rounded-l-none">
                                     <Search className="w-4 h-4" />
@@ -164,13 +165,34 @@ export default function Navbar() {
                                         <div className="p-2 text-center text-gray-500">Buscando...</div>
                                     ) : suggestions.length > 0 ? (
                                         <>
-                                            {suggestions.map((product) => (
+                                             {suggestions.map((product) => (
                                                 <div
                                                     key={product.id}
-                                                    className="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                                    className="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3"
                                                     onClick={() => handleSuggestionClick(product.id)}
                                                 >
-                                                    <span className="text-sm">{product.nombre}</span>
+                                                    <div className="relative w-10 h-10 rounded-md overflow-hidden bg-gray-100 shrink-0">
+                                                        {(() => {
+                                                            const img = product.imagenPrincipal || product.imagenes?.[0];
+                                                            return img ? (
+                                                                <Image
+                                                                    src={img}
+                                                                    alt={product.nombre}
+                                                                    fill
+                                                                    className="object-cover"
+                                                                    sizes="40px"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                                    <Search className="w-4 h-4" />
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-medium truncate">{product.nombre}</p>
+                                                        <p className="text-xs text-gray-500">${product.precio.toLocaleString()}</p>
+                                                    </div>
                                                 </div>
                                             ))}
                                             <div
@@ -192,7 +214,7 @@ export default function Navbar() {
 
                         {/* Usuario */}
                         {user ? (
-                            <DropdownMenu>
+                            <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="flex items-center gap-2">
                                         <User className="w-4 h-4" />
@@ -222,14 +244,23 @@ export default function Navbar() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         ) : (
-                            <div className="flex gap-2">
-                                <Link href="/auth/login">
-                                    <Button variant="outline" size="sm">Iniciar sesión</Button>
-                                </Link>
-                                <Link href="/auth/register">
-                                    <Button variant="default" size="sm">Registrarse</Button>
-                                </Link>
-                            </div>
+                            <DropdownMenu modal={false}>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <User className="w-5 h-5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/auth/login">Iniciar sesión</Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/auth/register">Registrarse</Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         )}
                     </div>
 
