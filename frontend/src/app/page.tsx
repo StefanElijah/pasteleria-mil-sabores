@@ -36,14 +36,9 @@ export default function HomePage() {
 
       {/* Productos Destacados Section */}
       <section className="container mx-auto px-4 py-16">
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Productos Destacados</h2>
-            <p className="text-gray-600 mt-2">Nuestras especialidades más solicitadas</p>
-          </div>
-          <Link href="/products" className="hidden sm:flex items-center text-rose-600 hover:text-rose-700 font-medium">
-            Ver todos <ArrowRight className="ml-1 w-4 h-4" />
-          </Link>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">Productos Destacados</h2>
+          <p className="text-gray-600 mt-2">Nuestras especialidades más solicitadas</p>
         </div>
 
         {loading ? (

@@ -6,6 +6,8 @@ import api from '@/lib/axios';
 import { Product } from '@/types';
 import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
+import { useBreadcrumbStore } from '@/store/breadcrumbStore';
+import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/format';
 
@@ -17,6 +19,7 @@ export default function ProductDetailPage() {
     const [loading, setLoading] = useState(true);
     const addItem = useCartStore((state) => state.addItem);
     const [isAdding, setIsAdding] = useState(false);
+    const { setLastLabel, setMiddle, clearAll } = useBreadcrumbStore();
 
     useEffect(() => {
         if (slug) {
@@ -24,10 +27,15 @@ export default function ProductDetailPage() {
                 .then(({ data }) => {
                     setProduct(data);
                     setSelectedImage(data.imagenPrincipal || data.imagenes?.[0] || null);
+                    setLastLabel(data.nombre);
+                    if (data.categoria) {
+                        setMiddle(data.categoria.nombre, `/categoria/${data.categoria.slug}`);
+                    }
                 })
                 .finally(() => setLoading(false));
         }
-    }, [slug]);
+        return () => clearAll();
+    }, [slug, setLastLabel, setMiddle, clearAll]);
 
     const handleAddToCart = async () => {
         if (!product || product.stock === 0) return;
@@ -51,7 +59,9 @@ export default function ProductDetailPage() {
     if (!product) return <div className="text-center py-10">Producto no encontrado</div>;
 
     return (
-        <div className="grid md:grid-cols-2 gap-8">
+        <div>
+            <BreadcrumbNav />
+            <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-4">
                 {mainImage ? (
                     <>
@@ -140,6 +150,7 @@ export default function ProductDetailPage() {
                 )}
                 <p className="text-sm text-gray-500 mt-4">Stock disponible: {product.stock}</p>
             </div>
+        </div>
         </div>
     );
 }

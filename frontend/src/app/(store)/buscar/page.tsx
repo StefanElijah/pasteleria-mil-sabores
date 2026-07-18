@@ -26,7 +26,7 @@ function BuscarContent() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold mb-2">
+            <h1 className="text-2xl font-bold mb-2 text-center">
                 {q ? `Resultados para "${q}"` : 'Buscar productos'}
             </h1>
             {loading ? (

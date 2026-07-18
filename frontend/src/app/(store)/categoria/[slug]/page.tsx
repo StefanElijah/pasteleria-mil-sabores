@@ -4,6 +4,8 @@ import { useParams } from 'next/navigation';
 import api from '@/lib/axios';
 import { Product, Category } from '@/types';
 import ProductCard from '@/components/products/ProductCard';
+import { useBreadcrumbStore } from '@/store/breadcrumbStore';
+import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav';
 
 export default function CategoriaPage() {
     const { slug } = useParams();
@@ -11,6 +13,7 @@ export default function CategoriaPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { setLastLabel, clearAll } = useBreadcrumbStore();
 
     useEffect(() => {
         if (slug) {
@@ -19,6 +22,7 @@ export default function CategoriaPage() {
                     const { data } = await api.get(`/categories/slug/${slug}`);
                     setCategory(data);
                     setProducts(data.productos || []);
+                    setLastLabel(data.nombre);
                 } catch (err) {
                     console.error(err);
                     setError('Categoría no encontrada');
@@ -28,7 +32,8 @@ export default function CategoriaPage() {
             };
             fetchCategory();
         }
-    }, [slug]);
+        return () => clearAll();
+    }, [slug, setLastLabel, clearAll]);
 
     if (loading) {
         return <div className="text-center py-10">Cargando productos...</div>;
@@ -40,8 +45,9 @@ export default function CategoriaPage() {
 
     return (
         <div>
-            <h1 className="text-3xl font-bold mb-2">{category.nombre}</h1>
-            <p className="text-gray-600 mb-6">
+            <BreadcrumbNav />
+            <h1 className="text-3xl font-bold mb-2 text-center">{category.nombre}</h1>
+            <p className="text-gray-600 mb-6 text-center">
                 {products.length} producto{products.length !== 1 ? 's' : ''} encontrado{products.length !== 1 ? 's' : ''}
             </p>
             {products.length === 0 ? (
