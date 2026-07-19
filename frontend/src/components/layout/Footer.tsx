@@ -1,9 +1,11 @@
 'use client';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FaFacebook, FaInstagram } from 'react-icons/fa';
 import { CreditCard, Wallet, DollarSign } from 'lucide-react';
 
 export default function Footer() {
+    const pathname = usePathname();
     return (
         <footer className="bg-gray-900 text-gray-300 py-10 mt-12">
             <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32">
@@ -26,7 +28,11 @@ export default function Footer() {
                     <div>
                         <h5 className="text-white text-lg font-semibold mb-4">Enlaces Rápidos</h5>
                         <ul className="space-y-2 text-sm">
-                            <li><Link href="/" className="hover:text-white">Inicio</Link></li>
+                            {pathname === '/' ? (
+                                <li><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white cursor-pointer">Inicio</button></li>
+                            ) : (
+                                <li><Link href="/" className="hover:text-white">Inicio</Link></li>
+                            )}
                             <li><Link href="/nosotros" className="hover:text-white">Quienes Somos</Link></li>
                             <li><Link href="/contacto" className="hover:text-white">Contáctanos</Link></li>
                         </ul>

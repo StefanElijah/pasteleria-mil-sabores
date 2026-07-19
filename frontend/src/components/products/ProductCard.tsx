@@ -1,4 +1,3 @@
-// components/products/ProductCard.tsx
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -22,32 +21,14 @@ export default function ProductCard({ product }: { product: Product }) {
         }
     };
 
-    // Si el producto está inactivo, no debería mostrarse (seguridad extra)
     if (!product.activo) return null;
 
     const isOutOfStock = product.stock === 0;
 
     return (
-        <div className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition relative">
-            <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-                {product.destacado && (
-                    <span className="bg-rose-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                        Destacado
-                    </span>
-                )}
-                {product.novedad && (
-                    <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                        Novedad
-                    </span>
-                )}
-            </div>
-            {isOutOfStock && (
-                <div className="absolute top-2 right-2 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    Sin stock
-                </div>
-            )}
-            <Link href={`/products/${product.slug}`}>
-                <div className="relative h-40 sm:h-48 bg-gray-200">
+        <div className="group flex flex-col rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-card h-full">
+            <Link href={`/products/${product.slug}`} className="block overflow-hidden">
+                <div className="relative h-48 sm:h-64 bg-muted overflow-hidden">
                     {(() => {
                         const imgSrc = product.imagenPrincipal || product.imagenes?.[0];
                         return imgSrc ? (
@@ -55,30 +36,40 @@ export default function ProductCard({ product }: { product: Product }) {
                                 src={imgSrc}
                                 alt={product.nombre}
                                 fill
-                                className="object-cover"
+                                className="object-cover transition-transform duration-500 group-hover:scale-105"
                                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
                                 loading="eager"
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                Sin imagen
-                            </div>
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground" />
                         );
                     })()}
+                    {isOutOfStock && (
+                        <div className="absolute top-2 right-2 z-10 bg-destructive text-destructive-foreground text-xs font-medium px-2.5 py-1 rounded-full">
+                            Sin stock
+                        </div>
+                    )}
                 </div>
             </Link>
-            <div className="p-3 sm:p-4">
+            <div className="flex flex-col flex-1 px-3 sm:px-4 py-3">
                 <Link href={`/products/${product.slug}`}>
-                    <h2 className="text-base sm:text-lg font-semibold hover:text-rose-600">{product.nombre}</h2>
+                    <h2 className="text-sm sm:text-base font-medium leading-snug hover:text-rose-600 transition-colors line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem]">
+                        {product.nombre}
+                    </h2>
                 </Link>
-                <p className="text-gray-600 mt-1">${formatPrice(product.precio)}</p>
-                <Button
-                    onClick={handleAddToCart}
-                    disabled={isLoading || isOutOfStock}
-                    className="w-full mt-3"
-                >
-                    {isOutOfStock ? 'Sin stock' : isLoading ? 'Agregando...' : 'Agregar al Carrito'}
-                </Button>
+                <div className="mt-auto pt-2">
+                    <p className="text-lg sm:text-xl font-bold text-rose-600">
+                        ${formatPrice(product.precio)}
+                    </p>
+                    <Button
+                        onClick={handleAddToCart}
+                        disabled={isLoading || isOutOfStock}
+                        variant="outline"
+                        className="w-full mt-2"
+                    >
+                        {isOutOfStock ? 'Sin stock' : isLoading ? 'Agregando...' : 'Agregar al Carrito'}
+                    </Button>
+                </div>
             </div>
         </div>
     );
