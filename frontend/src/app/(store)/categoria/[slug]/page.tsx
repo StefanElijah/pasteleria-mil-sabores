@@ -44,7 +44,7 @@ export default function CategoriaPage() {
     }
 
     return (
-        <div>
+        <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-8">
             <BreadcrumbNav />
             <h1 className="text-3xl font-bold mb-2 text-center">{category.nombre}</h1>
             <p className="text-gray-600 mb-6 text-center">

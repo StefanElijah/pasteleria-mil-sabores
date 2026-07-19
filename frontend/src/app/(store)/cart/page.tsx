@@ -28,7 +28,7 @@ export default function CartPage() {
 
     if (items.length === 0) {
         return (
-            <div className="text-center py-12">
+            <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-8 text-center">
                 <h1 className="text-2xl font-bold mb-4">Tu carrito está vacío</h1>
                 <Link href="/">
                     <Button>Ir a comprar</Button>
@@ -38,7 +38,7 @@ export default function CartPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-8 max-w-4xl">
             <h1 className="text-2xl font-bold mb-6">Mi Carrito</h1>
             <div className="space-y-4">
                 {items.map((item) => (

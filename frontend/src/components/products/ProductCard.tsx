@@ -47,7 +47,7 @@ export default function ProductCard({ product }: { product: Product }) {
                 </div>
             )}
             <Link href={`/products/${product.slug}`}>
-                <div className="relative h-48 bg-gray-200">
+                <div className="relative h-40 sm:h-48 bg-gray-200">
                     {(() => {
                         const imgSrc = product.imagenPrincipal || product.imagenes?.[0];
                         return imgSrc ? (
@@ -67,9 +67,9 @@ export default function ProductCard({ product }: { product: Product }) {
                     })()}
                 </div>
             </Link>
-            <div className="p-4">
+            <div className="p-3 sm:p-4">
                 <Link href={`/products/${product.slug}`}>
-                    <h2 className="text-lg font-semibold hover:text-rose-600">{product.nombre}</h2>
+                    <h2 className="text-base sm:text-lg font-semibold hover:text-rose-600">{product.nombre}</h2>
                 </Link>
                 <p className="text-gray-600 mt-1">${formatPrice(product.precio)}</p>
                 <Button

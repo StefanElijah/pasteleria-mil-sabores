@@ -65,7 +65,7 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-8">
             <div className="mb-8">
                 <div className="flex items-center justify-center gap-0">
                     {STEPS.map((step, index) => {

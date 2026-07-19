@@ -30,12 +30,10 @@ export default function HomePage() {
 
   return (
     <main>
-      <div className="relative -mt-8 -ml-[calc(50vw-50%)] -mr-[calc(50vw-50%)] overflow-hidden">
-        <HeroSlider />
-      </div>
+      <HeroSlider />
 
       {/* Productos Destacados Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-16">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Productos Destacados</h2>
           <p className="text-gray-600 mt-2">Nuestras especialidades más solicitadas</p>

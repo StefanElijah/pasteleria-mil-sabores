@@ -6,7 +6,7 @@ import { CreditCard, Wallet, DollarSign } from 'lucide-react';
 export default function Footer() {
     return (
         <footer className="bg-gray-900 text-gray-300 py-10 mt-12">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {/* Compañía */}
                     <div>
@@ -61,7 +61,7 @@ export default function Footer() {
 
                 <hr className="border-gray-800 my-8" />
 
-                <div className="container mx-auto px-4 text-center">
+                <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 text-center">
                     <p>© {new Date().getFullYear()} Pastelería Mil Sabores. Todos los derechos reservados.</p>
                 </div>
             </div>

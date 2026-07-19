@@ -25,7 +25,7 @@ function BuscarContent() {
     }, [q]);
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-8">
             <h1 className="text-2xl font-bold mb-2 text-center">
                 {q ? `Resultados para "${q}"` : 'Buscar productos'}
             </h1>
@@ -49,7 +49,7 @@ function BuscarContent() {
 
 export default function BuscarPage() {
     return (
-        <Suspense fallback={<div className="container mx-auto px-4 py-8"><p className="text-gray-500">Cargando...</p></div>}>
+        <Suspense fallback={<div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-8"><p className="text-gray-500">Cargando...</p></div>}>
             <BuscarContent />
         </Suspense>
     );

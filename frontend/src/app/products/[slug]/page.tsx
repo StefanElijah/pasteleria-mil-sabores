@@ -59,7 +59,7 @@ export default function ProductDetailPage() {
     if (!product) return <div className="text-center py-10">Producto no encontrado</div>;
 
     return (
-        <div>
+        <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-8">
             <BreadcrumbNav />
             <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-4">

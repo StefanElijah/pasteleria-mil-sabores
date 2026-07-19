@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function NosotrosPage() {
     return (
-        <div className="container mx-auto py-12 px-4 max-w-4xl">
+        <div className="container mx-auto py-12 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 max-w-4xl">
             <h1 className="text-4xl font-bold text-center mb-8 text-rose-600">Quiénes Somos</h1>
             <div className="space-y-6 text-gray-700 leading-relaxed">
                 <p className="text-lg font-semibold">

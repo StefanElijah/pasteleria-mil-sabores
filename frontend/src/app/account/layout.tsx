@@ -20,7 +20,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     if (!user) return null;
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <aside className="md:col-span-1">
                     <nav className="space-y-1">

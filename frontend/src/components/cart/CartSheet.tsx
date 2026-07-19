@@ -52,7 +52,7 @@ export default function CartSheet() {
                         Mi Carrito
                     </SheetTitle>
                 </SheetHeader>
-                <div className="mt-6 space-y-4">
+                <div className="mt-6 space-y-4 px-6">
                     {items.length === 0 ? (
                         <div className="text-center space-y-4">
                             <p className="text-gray-500">No hay productos en el carrito</p>

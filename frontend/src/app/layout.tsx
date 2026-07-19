@@ -25,7 +25,7 @@ export default function RootLayout({
         <Providers>
           <Header />
           <Navbar />
-          <main className="min-h-screen container mx-auto px-4 py-8">
+          <main className="min-h-screen">
             {children}
           </main>
           <Footer />

@@ -89,7 +89,7 @@ export default function HeroSlider() {
         navigation
         pagination={{ clickable: true }}
         aria-label="Slider principal"
-        className="hero-swiper h-[calc(100dvh-64px)] w-full"
+        className="hero-swiper h-[60vh] sm:h-[80vh] xl:h-[calc(100dvh-64px)] w-full"
       >
         {slides.map((slide, i) => (
           <SwiperSlide key={i} aria-roledescription="slide">
@@ -104,12 +104,12 @@ export default function HeroSlider() {
                 quality={85}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
-              <div className="absolute inset-0 flex items-center px-4 sm:px-8 md:px-16 lg:px-24">
+              <div className="absolute inset-0 flex items-center px-6 sm:px-12 lg:px-24">
                 <div className="max-w-xl">
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 drop-shadow-lg leading-tight">
+                  <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white mb-4 drop-shadow-lg leading-tight">
                     {slide.title}
                   </h2>
-                  <p className="text-base sm:text-lg text-white/90 mb-6 drop-shadow-md leading-relaxed">
+                  <p className="text-sm sm:text-base lg:text-lg text-white/90 mb-6 drop-shadow-md leading-relaxed">
                     {slide.subtitle}
                   </p>
                   <Link href={slide.href}>

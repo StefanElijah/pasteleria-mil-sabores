@@ -27,7 +27,7 @@ export default function ProductsPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 py-8">
             <BreadcrumbNav />
 
             <div className="mb-8 text-center">

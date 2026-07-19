@@ -3,12 +3,20 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, Search, User, LogOut, ShieldCheck, ChevronDown } from 'lucide-react';
+import { Menu, X, Search, User, LogOut, ShieldCheck, ChevronDown, ChevronLeft } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { useSearch } from '@/hooks/useSearch';
 import api from '@/lib/axios';
 import CartSheet from '@/components/cart/CartSheet';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+    SheetClose,
+} from '@/components/ui/sheet';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -22,19 +30,16 @@ import { Input } from '@/components/ui/input';
 import { Category } from '@/types';
 
 export default function Navbar() {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [showMobileCategories, setShowMobileCategories] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoadingCategories, setIsLoadingCategories] = useState(true);
     const pathname = usePathname();
     const router = useRouter();
     const { user, logout } = useAuthStore();
-    const { items } = useCartStore();
     const { searchTerm, setSearchTerm, suggestions, isSearching } = useSearch();
     const searchRef = useRef<HTMLDivElement>(null);
-    const cartCount = items.reduce((acc, i) => acc + i.quantity, 0);
 
-    // Cargar categorías activas desde el backend
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -49,7 +54,6 @@ export default function Navbar() {
         fetchCategories();
     }, [pathname]);
 
-    // Cerrar sugerencias al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -66,7 +70,6 @@ export default function Navbar() {
             router.push(`/buscar?q=${encodeURIComponent(searchTerm.trim())}`);
             setSearchTerm('');
             setShowSuggestions(false);
-            setIsMenuOpen(false);
         }
     };
 
@@ -74,13 +77,11 @@ export default function Navbar() {
         router.push(`/products/${productId}`);
         setSearchTerm('');
         setShowSuggestions(false);
-        setIsMenuOpen(false);
     };
 
     const handleLogout = () => {
         logout();
         router.push('/');
-        setIsMenuOpen(false);
     };
 
     const navLinks = [
@@ -90,32 +91,82 @@ export default function Navbar() {
         { href: '/contacto', label: 'Contacto' },
     ];
 
+    const UserMenu = () => (
+        user ? (
+            <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2">
+                        <User className="w-5 h-5" />
+                        <span className="hidden sm:inline">{user.primerNombre} {user.primerApellido?.charAt(0)}.</span>
+                        {user.rol === 'ADMIN' && <ShieldCheck className="w-4 h-4 text-red-600" />}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    {user.rol === 'ADMIN' ? (
+                        <DropdownMenuItem asChild>
+                            <Link href="/admin">Panel Administrador</Link>
+                        </DropdownMenuItem>
+                    ) : (
+                        <>
+                            <DropdownMenuItem asChild>
+                                <Link href="/account/profile">Mi Perfil</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/account/orders">Mis Pedidos</Link>
+                            </DropdownMenuItem>
+                        </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                        <LogOut className="w-4 h-4 mr-2" /> Cerrar sesión
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        ) : (
+            <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <User className="w-5 h-5" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <Link href="/auth/login">Iniciar sesión</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/auth/register">Registrarse</Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        )
+    );
+
     return (
         <nav className="bg-white sticky top-0 z-50">
-            <div className="container mx-auto px-4">
-                <div className="flex justify-between items-center h-16">
+            <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32">
+                <div className="flex items-center h-16 gap-2">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
-                        <img src="https://res.cloudinary.com/dtkxwlj5g/image/upload/q_auto/f_auto/v1780357889/logo_pasteleria_sin_fondo_asbb6y.png" alt="Logo" className="h-12 w-auto" />
-                        <span className="font-bold text-xl text-rose-600 hidden md:inline">Pastelería Mil Sabores</span>
+                    <Link href="/" className="flex items-center gap-2 shrink-0">
+                        <img src="https://res.cloudinary.com/dtkxwlj5g/image/upload/q_auto/f_auto/v1780357889/logo_pasteleria_sin_fondo_asbb6y.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
+                        <span className="font-bold text-lg sm:text-xl text-rose-600 hidden sm:inline">Pastelería Mil Sabores</span>
                     </Link>
 
-                    {/* Desktop Navigation */}
-                    <div className="hidden lg:flex items-center space-x-6">
+                    {/* Desktop Navigation (md+) */}
+                    <div className="hidden md:flex items-center space-x-1 lg:space-x-4 ml-2">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className={`hover:text-rose-600 transition ${pathname === link.href ? 'text-rose-600 font-semibold' : ''}`}
+                                className={`px-2 py-1 rounded-md text-sm hover:text-rose-600 transition ${pathname === link.href ? 'text-rose-600 font-semibold' : ''}`}
                             >
                                 {link.label}
                             </Link>
                         ))}
-
-                        {/* Dropdown Categorías dinámico */}
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="hover:text-rose-600 flex items-center gap-1">
+                                <Button variant="ghost" className="hover:text-rose-600 flex items-center gap-1 text-sm px-2">
                                     Categorías <ChevronDown className="w-4 h-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -139,227 +190,215 @@ export default function Navbar() {
                         </DropdownMenu>
                     </div>
 
-                    {/* Desktop Right Section */}
-                    <div className="hidden lg:flex items-center gap-4">
-                        {/* Buscador */}
-                        <div className="relative" ref={searchRef}>
-                            <form onSubmit={handleSearchSubmit} className="flex">
-                                <Input
-                                    type="search"
-                                    placeholder="Buscar productos..."
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        if (e.target.value.length > 1) setShowSuggestions(true);
-                                        else setShowSuggestions(false);
-                                    }}
-                                    className="w-72 md:w-80 lg:w-96 rounded-r-none"
-                                />
-                                <Button type="submit" variant="default" className="rounded-l-none">
-                                    <Search className="w-4 h-4" />
-                                </Button>
-                            </form>
-                            {showSuggestions && (
-                                <div className="absolute top-full left-0 right-0 bg-white shadow-lg border rounded-md mt-1 z-50 max-h-80 overflow-y-auto">
-                                    {isSearching ? (
-                                        <div className="p-2 text-center text-gray-500">Buscando...</div>
-                                    ) : suggestions.length > 0 ? (
-                                        <>
-                                             {suggestions.map((product) => (
-                                                <div
-                                                    key={product.id}
-                                                    className="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3"
-                                                    onClick={() => handleSuggestionClick(product.id)}
-                                                >
-                                                    <div className="relative w-10 h-10 rounded-md overflow-hidden bg-gray-100 shrink-0">
-                                                        {(() => {
-                                                            const img = product.imagenPrincipal || product.imagenes?.[0];
-                                                            return img ? (
-                                                                <Image
-                                                                    src={img}
-                                                                    alt={product.nombre}
-                                                                    fill
-                                                                    className="object-cover"
-                                                                    sizes="40px"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                                    <Search className="w-4 h-4" />
-                                                                </div>
-                                                            );
-                                                        })()}
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="text-sm font-medium truncate">{product.nombre}</p>
-                                                        <p className="text-xs text-gray-500">${product.precio.toLocaleString()}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            <div
-                                                className="p-2 text-center text-rose-600 hover:bg-gray-100 cursor-pointer"
-                                                onClick={() => router.push(`/buscar?q=${encodeURIComponent(searchTerm)}`)}
-                                            >
-                                                Ver todos los resultados
-                                            </div>
-                                        </>
-                                    ) : searchTerm.length > 1 ? (
-                                        <div className="p-2 text-center text-gray-500">No se encontraron productos</div>
-                                    ) : null}
-                                </div>
-                            )}
-                        </div>
+                    {/* Spacer */}
+                    <div className="flex-1" />
 
-                        {/* Carrito */}
-                        <CartSheet />
-
-                        {/* Usuario */}
-                        {user ? (
-                            <DropdownMenu modal={false}>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="flex items-center gap-2">
-                                        <User className="w-4 h-4" />
-                                        <span>{user.primerNombre} {user.primerApellido?.charAt(0)}.</span>
-                                        {user.rol === 'ADMIN' && <ShieldCheck className="w-4 h-4 text-red-600" />}
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    {user.rol === 'ADMIN' ? (
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/admin">Panel Administrador</Link>
-                                        </DropdownMenuItem>
-                                    ) : (
-                                        <>
-                                            <DropdownMenuItem asChild>
-                                                <Link href="/account/profile">Mi Perfil</Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem asChild>
-                                                <Link href="/account/orders">Mis Pedidos</Link>
-                                            </DropdownMenuItem>
-                                        </>
-                                    )}
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                                        <LogOut className="w-4 h-4 mr-2" /> Cerrar sesión
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : (
-                            <DropdownMenu modal={false}>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <User className="w-5 h-5" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/auth/login">Iniciar sesión</Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/auth/register">Registrarse</Link>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
-                    </div>
-
-                    {/* Mobile menu button */}
-                    <button
-                        className="lg:hidden p-2 rounded-md hover:bg-gray-100"
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    >
-                        {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
-                </div>
-
-                {/* Mobile Navigation */}
-                {isMenuOpen && (
-                    <div className="lg:hidden py-4 border-t space-y-3">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`block py-2 hover:text-rose-600 ${pathname === link.href ? 'text-rose-600 font-semibold' : ''}`}
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                {link.label}
-                            </Link>
-                        ))}
-
-                        {/* Mobile categorías dinámicas */}
-                        <div>
-                            <p className="font-semibold py-2">Categorías</p>
-                            {isLoadingCategories ? (
-                                <p className="text-gray-500 text-sm py-1">Cargando...</p>
-                            ) : categories.length === 0 ? (
-                                <p className="text-gray-500 text-sm py-1">No hay categorías</p>
-                            ) : (
-                                <div className="pl-4 space-y-2">
-                                    {categories.map((cat) => (
-                                        <Link
-                                            key={cat.id}
-                                            href={`/categoria/${cat.slug}`}
-                                            className="block py-1 text-sm hover:text-rose-600"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            {cat.nombre}
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Mobile search */}
-                        <form onSubmit={handleSearchSubmit} className="flex mt-4">
+                    {/* Desktop Search (md+) */}
+                    <div className="hidden md:flex relative" ref={searchRef}>
+                        <form onSubmit={handleSearchSubmit} className="flex">
                             <Input
                                 type="search"
                                 placeholder="Buscar productos..."
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="flex-1 rounded-r-none"
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    if (e.target.value.length > 1) setShowSuggestions(true);
+                                    else setShowSuggestions(false);
+                                }}
+                                className="w-40 lg:w-72 xl:w-96 rounded-r-none"
                             />
-                            <Button type="submit" className="rounded-l-none">
+                            <Button type="submit" variant="default" className="rounded-l-none">
                                 <Search className="w-4 h-4" />
                             </Button>
                         </form>
+                        {showSuggestions && (
+                            <div className="absolute top-full left-0 right-0 bg-white shadow-lg border rounded-md mt-1 z-50 max-h-80 overflow-y-auto min-w-[200px]">
+                                {isSearching ? (
+                                    <div className="p-2 text-center text-gray-500">Buscando...</div>
+                                ) : suggestions.length > 0 ? (
+                                    <>
+                                        {suggestions.map((product) => (
+                                            <div
+                                                key={product.id}
+                                                className="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3"
+                                                onClick={() => handleSuggestionClick(product.id)}
+                                            >
+                                                <div className="relative w-10 h-10 rounded-md overflow-hidden bg-gray-100 shrink-0">
+                                                    {(() => {
+                                                        const img = product.imagenPrincipal || product.imagenes?.[0];
+                                                        return img ? (
+                                                            <Image
+                                                                src={img}
+                                                                alt={product.nombre}
+                                                                fill
+                                                                className="object-cover"
+                                                                sizes="40px"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                                <Search className="w-4 h-4" />
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-medium truncate">{product.nombre}</p>
+                                                    <p className="text-xs text-gray-500">${product.precio.toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div
+                                            className="p-2 text-center text-rose-600 hover:bg-gray-100 cursor-pointer"
+                                            onClick={() => router.push(`/buscar?q=${encodeURIComponent(searchTerm)}`)}
+                                        >
+                                            Ver todos los resultados
+                                        </div>
+                                    </>
+                                ) : searchTerm.length > 1 ? (
+                                    <div className="p-2 text-center text-gray-500">No se encontraron productos</div>
+                                ) : null}
+                            </div>
+                        )}
+                    </div>
 
-                        {/* Mobile user actions */}
-                        <div className="pt-4 border-t">
-                            {user ? (
+                    {/* Cart (always visible) */}
+                    <CartSheet />
+
+                    {/* User (always visible) */}
+                    <UserMenu />
+
+                    {/* Mobile menu drawer (md-) */}
+                    <Sheet onOpenChange={(open) => { if (!open) setShowMobileCategories(false); }}>
+                        <SheetTrigger asChild>
+                            <button className="md:hidden p-2 rounded-md hover:bg-gray-100">
+                                <Menu className="w-6 h-6" />
+                            </button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="w-4/5 max-w-sm">
+                            {showMobileCategories ? (
                                 <>
-                                    <p className="mb-2">Hola, {user.primerNombre}</p>
-                                    {user.rol === 'ADMIN' ? (
-                                        <Link href="/admin" className="block py-2 hover:text-rose-600" onClick={() => setIsMenuOpen(false)}>
-                                            Panel Administrador
-                                        </Link>
-                                    ) : (
-                                        <>
-                                            <Link href="/account/profile" className="block py-2 hover:text-rose-600" onClick={() => setIsMenuOpen(false)}>
-                                                Mi Perfil
-                                            </Link>
-                                            <Link href="/account/orders" className="block py-2 hover:text-rose-600" onClick={() => setIsMenuOpen(false)}>
-                                                Mis Pedidos
-                                            </Link>
-                                        </>
-                                    )}
-                                    <button onClick={handleLogout} className="block py-2 text-red-600">
-                                        Cerrar sesión
-                                    </button>
+                                    <SheetHeader>
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                onClick={() => setShowMobileCategories(false)}
+                                            >
+                                                <ChevronLeft className="w-5 h-5" />
+                                            </Button>
+                                            <SheetTitle>Categorías</SheetTitle>
+                                        </div>
+                                    </SheetHeader>
+                                    <div className="px-6 py-4 space-y-1">
+                                        {isLoadingCategories ? (
+                                            <p className="text-gray-500 text-sm py-2">Cargando...</p>
+                                        ) : categories.length === 0 ? (
+                                            <p className="text-gray-500 text-sm py-2">No hay categorías</p>
+                                        ) : (
+                                            categories.map((cat) => (
+                                                <SheetClose key={cat.id} asChild>
+                                                    <Link
+                                                        href={`/categoria/${cat.slug}`}
+                                                        className="block py-2.5 px-2 rounded-md text-sm hover:bg-accent transition-colors"
+                                                    >
+                                                        {cat.nombre}
+                                                    </Link>
+                                                </SheetClose>
+                                            ))
+                                        )}
+                                    </div>
                                 </>
                             ) : (
-                                <div className="flex gap-3">
-                                    <Link href="/auth/login" className="py-2 hover:text-rose-600" onClick={() => setIsMenuOpen(false)}>
-                                        Iniciar sesión
-                                    </Link>
-                                    <Link href="/auth/register" className="py-2 hover:text-rose-600" onClick={() => setIsMenuOpen(false)}>
-                                        Registrarse
-                                    </Link>
-                                </div>
+                                <>
+                                    <SheetHeader>
+                                        <SheetTitle>Menú</SheetTitle>
+                                    </SheetHeader>
+                                    <div className="px-6 py-4 space-y-1">
+                                        <form onSubmit={handleSearchSubmit} className="flex mb-3">
+                                            <Input
+                                                type="search"
+                                                placeholder="Buscar productos..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                className="flex-1 rounded-r-none"
+                                            />
+                                            <SheetClose asChild>
+                                                <Button type="submit" className="rounded-l-none">
+                                                    <Search className="w-4 h-4" />
+                                                </Button>
+                                            </SheetClose>
+                                        </form>
+
+                                        <div className="border-t pt-2 mb-2" />
+
+                                        {navLinks.map((link) => (
+                                            <SheetClose key={link.href} asChild>
+                                                <Link
+                                                    href={link.href}
+                                                    className={`block py-2.5 px-2 rounded-md text-sm transition-colors hover:bg-accent ${pathname === link.href ? 'text-rose-600 font-semibold bg-accent' : ''}`}
+                                                >
+                                                    {link.label}
+                                                </Link>
+                                            </SheetClose>
+                                        ))}
+
+                                        <button
+                                            onClick={() => setShowMobileCategories(true)}
+                                            className="flex items-center justify-between w-full py-2.5 px-2 rounded-md text-sm transition-colors hover:bg-accent"
+                                        >
+                                            Categorías
+                                            <ChevronDown className="w-4 h-4 -rotate-90" />
+                                        </button>
+
+                                        <div className="border-t pt-2 mt-2" />
+
+                                        {user ? (
+                                            <>
+                                                <p className="py-2 px-2 text-xs text-muted-foreground">Hola, {user.primerNombre}</p>
+                                                {user.rol === 'ADMIN' ? (
+                                                    <SheetClose asChild>
+                                                        <Link href="/admin" className="block py-2.5 px-2 rounded-md text-sm hover:bg-accent transition-colors">
+                                                            Panel Administrador
+                                                        </Link>
+                                                    </SheetClose>
+                                                ) : (
+                                                    <>
+                                                        <SheetClose asChild>
+                                                            <Link href="/account/profile" className="block py-2.5 px-2 rounded-md text-sm hover:bg-accent transition-colors">
+                                                                Mi Perfil
+                                                            </Link>
+                                                        </SheetClose>
+                                                        <SheetClose asChild>
+                                                            <Link href="/account/orders" className="block py-2.5 px-2 rounded-md text-sm hover:bg-accent transition-colors">
+                                                                Mis Pedidos
+                                                            </Link>
+                                                        </SheetClose>
+                                                    </>
+                                                )}
+                                                <button onClick={handleLogout} className="block w-full text-left py-2.5 px-2 rounded-md text-sm text-red-600 hover:bg-accent transition-colors">
+                                                    Cerrar sesión
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <SheetClose asChild>
+                                                    <Link href="/auth/login" className="block py-2.5 px-2 rounded-md text-sm hover:bg-accent transition-colors">
+                                                        Iniciar sesión
+                                                    </Link>
+                                                </SheetClose>
+                                                <SheetClose asChild>
+                                                    <Link href="/auth/register" className="block py-2.5 px-2 rounded-md text-sm hover:bg-accent transition-colors">
+                                                        Registrarse
+                                                    </Link>
+                                                </SheetClose>
+                                            </>
+                                        )}
+                                    </div>
+                                </>
                             )}
-                        </div>
-                    </div>
-                )}
+                        </SheetContent>
+                    </Sheet>
+                </div>
             </div>
         </nav>
     );

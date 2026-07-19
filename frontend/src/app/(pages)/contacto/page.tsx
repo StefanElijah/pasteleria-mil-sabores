@@ -37,7 +37,7 @@ export default function ContactoPage() {
     };
 
     return (
-        <div className="container mx-auto py-12 px-4 max-w-4xl">
+        <div className="container mx-auto py-12 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32 max-w-4xl">
             <div className="text-center mb-8">
                 <h1 className="text-4xl font-bold text-rose-600 mb-2">Pastelería Mil Sabores</h1>
                 <p className="text-gray-600 text-lg">Contáctanos para más información</p>
