@@ -144,7 +144,7 @@ export default function CartSheet() {
                                     <span>Total:</span>
                                     <span>${total.toLocaleString()}</span>
                                 </div>
-                                <div className="space-y-2 mt-4">
+                                <div className="flex flex-col gap-4 mt-4">
                                     <SheetClose asChild>
                                         <Link href="/checkout">
                                             <Button className="w-full">Proceder al Pago</Button>

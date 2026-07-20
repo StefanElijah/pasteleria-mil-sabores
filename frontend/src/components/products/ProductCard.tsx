@@ -26,9 +26,9 @@ export default function ProductCard({ product }: { product: Product }) {
     const isOutOfStock = product.stock === 0;
 
     return (
-        <div className="group flex flex-col rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-card h-full">
+        <div className="group flex flex-col rounded-2xl overflow-hidden border shadow-sm hover:shadow-md transition-shadow bg-card h-full">
             <Link href={`/products/${product.slug}`} className="block overflow-hidden">
-                <div className="relative h-48 sm:h-64 bg-muted overflow-hidden">
+                <div className="relative h-48 sm:h-52 md:h-56 lg:h-56 xl:h-64 2xl:h-72 bg-muted overflow-hidden">
                     {(() => {
                         const imgSrc = product.imagenPrincipal || product.imagenes?.[0];
                         return imgSrc ? (
@@ -37,7 +37,7 @@ export default function ProductCard({ product }: { product: Product }) {
                                 alt={product.nombre}
                                 fill
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                                 loading="eager"
                             />
                         ) : (
