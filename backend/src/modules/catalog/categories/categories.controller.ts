@@ -18,6 +18,13 @@ export class CategoriesController {
         return this.categoriesService.create(createCategoryDto);
     }
 
+    @Patch('reordenar')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    reordenar(@Body() ordenes: { id: string; ordenVisual: number }[]) {
+        return this.categoriesService.reordenar(ordenes);
+    }
+
     @Get()
     findAll(@Query('activo') activo?: string, @Query('includeProducts') includeProducts?: string) {
         const withProducts = includeProducts === 'true';

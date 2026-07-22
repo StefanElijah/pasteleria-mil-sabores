@@ -107,7 +107,12 @@ export class CreateOrderDto {
     @IsString()
     transaccionId?: string;
 
-    @IsOptional()
-    @IsString()
-    comprobantePago?: string;
+  @IsOptional()
+  @IsString()
+  comprobantePago?: string;
+
+  // Plataforma desde donde se realizó el pedido
+  @IsOptional()
+  @IsString()
+  plataforma?: string;
 }

@@ -14,11 +14,18 @@ export default function CategoryDetailPage() {
     const editParam = searchParams.get('edit');
 
     const [category, setCategory] = useState<Category | null>(null);
+    const [allCategories, setAllCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [editMode, setEditMode] = useState(editParam === 'true');
 
     useEffect(() => {
-        api.get(`/categories/${id}`).then((res) => setCategory(res.data));
+        Promise.all([
+            api.get(`/categories/${id}`),
+            api.get('/categories?activo=all'),
+        ]).then(([catRes, allRes]) => {
+            setCategory(catRes.data);
+            setAllCategories(allRes.data);
+        });
     }, [id]);
 
     useEffect(() => {
@@ -28,7 +35,11 @@ export default function CategoryDetailPage() {
     const onSubmit = async (data: any) => {
         setLoading(true);
         try {
-            const res = await api.patch(`/categories/${id}`, data);
+            const payload = {
+                ...data,
+                padreId: data.padreId || null,
+            };
+            const res = await api.patch(`/categories/${id}`, payload);
             setCategory(res.data);
             setEditMode(false);
             router.replace(`/admin/categories/${id}`);
@@ -39,16 +50,27 @@ export default function CategoryDetailPage() {
         }
     };
 
-    if (!category) return <div className="p-6 text-center">Cargando...</div>;
+    if (!category) return (
+        <div className="flex justify-center items-center h-64">
+            <div className="animate-spin h-8 w-8 border-4 border-rose-500 border-t-transparent rounded-full" />
+        </div>
+    );
 
     if (editMode) {
         return (
             <div>
                 <h1 className="text-2xl font-bold mb-4">Editar Categoría</h1>
-                <CategoryForm initialData={category} onSubmit={onSubmit} isLoading={loading} onCancel={() => {
-                    setEditMode(false);
-                    router.replace(`/admin/categories/${id}`);
-                }} />
+                <CategoryForm
+                    initialData={category}
+                    categories={allCategories}
+                    excludeId={category.id}
+                    onSubmit={onSubmit}
+                    isLoading={loading}
+                    onCancel={() => {
+                        setEditMode(false);
+                        router.replace(`/admin/categories/${id}`);
+                    }}
+                />
             </div>
         );
     }
@@ -78,11 +100,50 @@ export default function CategoryDetailPage() {
                     <span className="text-sm text-gray-500">Slug</span>
                     <p className="text-lg font-medium">{category.slug}</p>
                 </div>
+                {category.descripcion && (
+                    <div>
+                        <span className="text-sm text-gray-500">Descripción</span>
+                        <p className="text-sm text-gray-700">{category.descripcion}</p>
+                    </div>
+                )}
+                <div>
+                    <span className="text-sm text-gray-500">Categoría padre</span>
+                    <p className="text-lg font-medium">
+                        {category.padre ? (
+                            <Link href={`/admin/categories/${category.padre.id}`} className="text-rose-600 hover:underline">
+                                {category.padre.nombre}
+                            </Link>
+                        ) : (
+                            <span className="text-gray-400">Ninguna (raíz)</span>
+                        )}
+                    </p>
+                </div>
                 <div>
                     <span className="text-sm text-gray-500">Productos asociados</span>
                     <p className="text-lg font-medium">
                         {category._count?.productos ?? category.productos?.length ?? 0}
                     </p>
+                </div>
+                <div>
+                    <span className="text-sm text-gray-500">Subcategorías</span>
+                    <p className="text-lg font-medium">
+                        {category.subcategorias?.length || 0}
+                    </p>
+                    {category.subcategorias && category.subcategorias.length > 0 && (
+                        <ul className="mt-1 space-y-1">
+                            {category.subcategorias.map((sub) => (
+                                <li key={sub.id}>
+                                    <Link href={`/admin/categories/${sub.id}`} className="text-rose-600 hover:underline text-sm">
+                                        {sub.nombre}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+                <div>
+                    <span className="text-sm text-gray-500">Orden visual</span>
+                    <p className="text-lg font-medium">{category.ordenVisual ?? '—'}</p>
                 </div>
                 <div>
                     <span className="text-sm text-gray-500">Estado</span>

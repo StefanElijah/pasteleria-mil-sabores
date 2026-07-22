@@ -6,9 +6,12 @@ import { z } from 'zod';
 import { Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { FormButtons } from '@/components/ui/form-buttons';
 import { useSlug } from '@/hooks/useSlug';
+import { Category } from '@/types';
 
 const categorySchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido").max(50, "Máximo 50 caracteres"),
@@ -17,6 +20,8 @@ const categorySchema = z.object({
         .min(1, "El slug es requerido")
         .max(50, "Máximo 50 caracteres")
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Formato inválido (solo minúsculas, números y guiones)"),
+    descripcion: z.string().max(500, "Máximo 500 caracteres").optional(),
+    padreId: z.string().optional(),
     activo: z.boolean().optional(),
 });
 
@@ -24,15 +29,17 @@ type CategoryFormValues = z.infer<typeof categorySchema>;
 
 interface CategoryFormProps {
     initialData?: Partial<CategoryFormValues>;
+    categories: Category[];
+    excludeId?: string;
     onSubmit: (data: CategoryFormValues) => Promise<void>;
     isLoading: boolean;
     onCancel?: () => void;
 }
 
-export function CategoryForm({ initialData, onSubmit, isLoading, onCancel }: CategoryFormProps) {
+export function CategoryForm({ initialData, categories, excludeId, onSubmit, isLoading, onCancel }: CategoryFormProps) {
     const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CategoryFormValues>({
         resolver: zodResolver(categorySchema),
-        defaultValues: initialData || { activo: true },
+        defaultValues: { ...initialData, activo: initialData?.activo ?? true },
     });
 
     const slug = useSlug({ watch, setValue });
@@ -44,10 +51,12 @@ export function CategoryForm({ initialData, onSubmit, isLoading, onCancel }: Cat
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const availableParents = categories.filter((c) => c.id !== excludeId);
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md">
             <div>
-                <label>Nombre *</label>
+                <label className="text-sm font-medium">Nombre *</label>
                 <Input {...register('nombre')} />
                 {errors.nombre && <p className="text-red-500 text-sm">{errors.nombre.message}</p>}
             </div>
@@ -67,12 +76,38 @@ export function CategoryForm({ initialData, onSubmit, isLoading, onCancel }: Cat
                 </div>
                 {errors.slug && <p className="text-red-500 text-sm">{errors.slug.message}</p>}
             </div>
+            <div>
+                <label className="text-sm font-medium">Descripción</label>
+                <Textarea {...register('descripcion')} rows={3} placeholder="Opcional" />
+                {errors.descripcion && <p className="text-red-500 text-sm">{errors.descripcion.message}</p>}
+            </div>
+            <div>
+                <label className="text-sm font-medium">Categoría padre</label>
+                <Select
+                    value={watch('padreId') || ''}
+                    onValueChange={(v) => setValue('padreId', v || undefined)}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Ninguna (categoría raíz)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="">Ninguna (categoría raíz)</SelectItem>
+                        {availableParents
+                            .filter((c) => c.activo)
+                            .map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.padreId ? '— ' : ''}{cat.nombre}
+                                </SelectItem>
+                            ))}
+                    </SelectContent>
+                </Select>
+            </div>
             <div className="flex items-center gap-2">
                 <Checkbox
                     checked={watch('activo')}
                     onCheckedChange={(checked) => setValue('activo', !!checked)}
                 />
-                <label>Activo</label>
+                <label className="text-sm">Activo</label>
             </div>
             <FormButtons isLoading={isLoading} onCancel={onCancel} />
         </form>

@@ -11,6 +11,8 @@ import { ComunasModule } from './modules/locations/comunas/comunas.module';
 import { AddressesModule } from '@modules/sales/addresses/addresses.module';
 import { OrdersModule } from '@modules/sales/orders/orders.module';
 import { ShippingModule } from '@modules/sales/shipping/shipping.module';
+import { EnviosModule } from '@modules/sales/envios/envios.module';
+import { StatsModule } from './modules/stats/stats.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CheckoutModule } from '@modules/sales/checkout/checkout.module';
 
@@ -28,6 +30,8 @@ import { CheckoutModule } from '@modules/sales/checkout/checkout.module';
     AddressesModule,
     OrdersModule,
     ShippingModule,
+    EnviosModule,
+    StatsModule,
     CloudinaryModule,
     CheckoutModule
   ],

@@ -36,11 +36,16 @@ export interface Category {
     id: string;
     nombre: string;
     slug: string;
+    descripcion?: string;
     activo: boolean;
+    ordenVisual?: number;
+    padreId?: string;
+    padre?: { id: string; nombre: string; slug?: string } | null;
+    subcategorias?: Category[];
+    productos?: Product[];
+    _count?: { productos: number; subcategorias?: number };
     createdAt: string;
     updatedAt: string;
-    productos?: Product[];
-    _count?: { productos: number };
 }
 
 export interface CartItem {
@@ -85,11 +90,12 @@ export interface OrderItem {
 export interface Order {
     id: string;
     numeroPedido: string;
-    estado: 'PENDIENTE' | 'PREPARANDO' | 'ENVIADO' | 'ENTREGADO' | 'CANCELADO';
+    estado: 'PENDIENTE' | 'PREPARANDO' | 'ENVIADO' | 'EN_REPARTO' | 'ENTREGADO' | 'INTENTO_FALLIDO' | 'RETRASADO' | 'DEVUELTO' | 'CANCELADO';
     subtotal: number;
     costoEnvio: number;
     total: number;
     metodoPago: 'TARJETA' | 'TRANSFERENCIA' | 'EFECTIVO' | 'PAGO_ENTREGA';
+    plataforma?: string;
     notas?: string;
     createdAt: string;
     updatedAt: string;
@@ -101,12 +107,39 @@ export interface Order {
     direccionId: string;
     direccion: Address;
     items: OrderItem[];
-    envio: {
-        id: string;
-        numeroTracking?: string;
-        metodoEnvio: string;
-        empresaLogistica?: string;
-        fechaEstimadaEntrega: string;
-        fechaEntregada?: string;
+    envio: Envio;
+}
+
+export interface Envio {
+    id: string;
+    numeroTracking?: string;
+    metodoEnvio: string;
+    empresaLogistica?: string;
+    fechaEstimadaEntrega: string;
+    fechaEntregada?: string;
+    estadoEnvio: string;
+    pedidoId: string;
+    pedido?: Order;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface DashboardStats {
+    kpis: {
+        totalProducts: number;
+        totalCategories: number;
+        totalOrders: number;
+        pendingOrders: number;
+        totalEnvios: number;
+        activeDiscounts: number;
+        totalRevenue: number;
     };
+    revenueByDay: { date: string; total: number }[];
+    ordersByStatus: { estado: string; count: number }[];
+    revenueByPlatform: { date: string; mobile: number; desktop: number }[];
+    revenueByPaymentMethod: { date: string; tarjeta: number; transferencia: number; efectivo: number; pago_entrega: number }[];
+    monthlyComparison: { label: string; añoActual: number; añoAnterior: number }[];
+    lowStockProducts: { id: string; nombre: string; stock: number; imagenPrincipal?: string }[];
+    revenueByCategory: { categoria: string; total: number }[];
+    recentOrders: { id: string; numeroPedido: string; total: number; estado: string; createdAt: string }[];
 }

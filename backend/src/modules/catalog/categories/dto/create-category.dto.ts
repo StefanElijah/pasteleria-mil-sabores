@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, MaxLength, IsBoolean, IsInt, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateCategoryDto {
@@ -11,6 +11,21 @@ export class CreateCategoryDto {
     @IsNotEmpty()
     @MaxLength(50)
     slug!: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(500)
+    descripcion?: string;
+
+    @IsOptional()
+    @IsString()
+    padreId?: string;
+
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    @Transform(({ value }) => parseInt(value, 10) || 0)
+    ordenVisual?: number;
 
     @IsOptional()
     @IsBoolean()

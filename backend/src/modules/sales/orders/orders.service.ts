@@ -66,6 +66,7 @@ export class OrdersService {
             telefonoDestinatario,
             transaccionId,
             comprobantePago,
+            plataforma,
         } = createOrderDto;
 
         // 1. Determinar los items del pedido (desde el DTO o desde el carrito)
@@ -195,6 +196,7 @@ export class OrdersService {
                     transaccionId,
                     comprobantePago,
                     trackingToken,
+                    plataforma: plataforma || null,
                     items: { create: orderItemsData },
                 },
                 include: { items: true, direccion: true },
@@ -206,6 +208,7 @@ export class OrdersService {
                     empresaLogistica: metodoEnvio,
                     fechaEstimadaEntrega,
                     pedidoId: newOrder.id,
+                    estadoEnvio: 'PENDIENTE',
                 },
             });
 

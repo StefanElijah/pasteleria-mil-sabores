@@ -97,7 +97,7 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-2">
                         <User className="w-5 h-5" />
-                        <span className="hidden sm:inline">{user.primerNombre} {user.primerApellido?.charAt(0)}.</span>
+                        <span className="text-sm sm:text-base hidden sm:inline">{user.primerNombre} {user.primerApellido?.charAt(0)}.</span>
                         {user.rol === 'ADMIN' && <ShieldCheck className="w-4 h-4 text-red-600" />}
                     </Button>
                 </DropdownMenuTrigger>
@@ -145,28 +145,27 @@ export default function Navbar() {
 
     return (
         <nav className="bg-white sticky top-0 z-50">
-            <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-28 2xl:px-32">
-                <div className="flex items-center h-16 gap-2">
+            <div className="container mx-auto px-3 sm:px-6 md:px-12 lg:px-20 xl:px-24 2xl:px-28">
+                <div className="flex items-center h-[4.5rem] gap-3 sm:gap-4">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 shrink-0">
-                        <img src="https://res.cloudinary.com/dtkxwlj5g/image/upload/q_auto/f_auto/v1780357889/logo_pasteleria_sin_fondo_asbb6y.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
-                        <span className="font-bold text-lg sm:text-xl text-rose-600 hidden sm:inline">Pastelería Mil Sabores</span>
+                    <Link href="/" className="flex items-center shrink-0">
+                        <img src="https://res.cloudinary.com/dtkxwlj5g/image/upload/q_auto/f_auto/v1780357889/logo_pasteleria_sin_fondo_asbb6y.png" alt="Logo" className="h-12 sm:h-14 lg:h-16 w-auto" />
                     </Link>
 
                     {/* Desktop Navigation (md+) */}
-                    <div className="hidden md:flex items-center space-x-1 lg:space-x-4 ml-2">
+                    <div className="hidden md:flex items-center space-x-1 sm:space-x-3 lg:space-x-5 ml-4">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className={`px-2 py-1 rounded-md text-sm hover:text-rose-600 transition ${pathname === link.href ? 'text-rose-600 font-semibold' : ''}`}
+                                className={`px-3 py-1.5 rounded-md text-sm sm:text-base hover:text-rose-600 transition ${pathname === link.href ? 'text-rose-600 font-semibold' : ''}`}
                             >
                                 {link.label}
                             </Link>
                         ))}
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="hover:text-rose-600 flex items-center gap-1 text-sm px-2">
+                                <Button variant="ghost" className="hover:text-rose-600 flex items-center gap-1 text-sm sm:text-base px-3 font-normal">
                                     Categorías <ChevronDown className="w-4 h-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -205,7 +204,7 @@ export default function Navbar() {
                                     if (e.target.value.length > 1) setShowSuggestions(true);
                                     else setShowSuggestions(false);
                                 }}
-                                className="w-40 lg:w-72 xl:w-96 rounded-r-none"
+                                className="w-40 lg:w-80 xl:w-96 rounded-r-none"
                             />
                             <Button type="submit" variant="default" className="rounded-l-none">
                                 <Search className="w-4 h-4" />
@@ -261,11 +260,10 @@ export default function Navbar() {
                         )}
                     </div>
 
-                    {/* Cart (always visible) */}
-                    <CartSheet />
-
-                    {/* User (always visible) */}
-                    <UserMenu />
+                    <div className="flex items-center gap-2 ml-4 md:ml-6">
+                        <CartSheet />
+                        <UserMenu />
+                    </div>
 
                     {/* Mobile menu drawer (md-) */}
                     <Sheet onOpenChange={(open) => { if (!open) setShowMobileCategories(false); }}>

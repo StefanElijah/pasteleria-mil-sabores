@@ -3,9 +3,6 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { Providers } from '@/components/providers';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import Navbar from '@/components/layout/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,12 +20,7 @@ export default function RootLayout({
     <html lang="es">
       <body className={inter.className}>
         <Providers>
-          <Header />
-          <Navbar />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Footer />
+          {children}
           <Toaster />
         </Providers>
       </body>
